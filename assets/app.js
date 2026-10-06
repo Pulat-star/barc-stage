@@ -43,7 +43,7 @@ const KF = {
   solo:  { y: 14, scale: .6, bob: 1, dark: .75, bub: 1, fl: .7 },
   usage: { x: 34, y: -26, scale: .4, rz: -12, dark: .25, bub: .3 },
   range: { y: 2, scale: .62, nb: 1, row: 1, bob: .4, fl: 1 },
-  faq:   { scale: .55, nb: 1, row: 1, op: .07, bub: .2 },
+  faq:   { scale: .55, nb: 0, row: 1, op: 0, bub: .2 },
   outro: { y: 6, scale: .5, dark: .5, bub: .8, bob: 1, fl: .8 },
   end:   { y: -30, scale: .6, op: 0, bub: .2 },
   phero: { x: 24, y: 4, scale: 1.05, ry: -10, bob: .6, dark: .15, bub: .3, fl: .7 },
@@ -52,15 +52,15 @@ const KF = {
 };
 const KF_M = {
   hero:  { y: 4, scale: .9 },
-  zoom:  { x: 0, y: -12, scale: 1.05 },
-  b1:    { x: 10, y: -16, scale: .85 }, b2: { x: -10, y: -16, scale: .85 },
-  b3:    { x: 10, y: -18, scale: .85 }, b4: { x: -10, y: -18, scale: .85 },
-  solo:  { y: 8, scale: .6 },
+  zoom:  { x: 0, y: -14, scale: .72 },
+  b1:    { x: 6, y: -17, scale: .6 }, b2: { x: -6, y: -17, scale: .6 },
+  b3:    { x: 6, y: -17, scale: .6 }, b4: { x: -6, y: -17, scale: .6 },
+  solo:  { y: 3, scale: .48 },
   usage: { x: 30, y: -36, scale: .22, op: 0 },
-  range: { y: 0, scale: .38 }, faq: { scale: .38 },
-  outro: { y: 8, scale: .55 },
+  range: { y: 0, scale: .32 }, faq: { scale: .32 },
+  outro: { y: 12, scale: .42 },
   phero: { x: 0, y: 26, scale: .6 },
-  pdock: { x: 34, y: -36, scale: .2 }, pgone: { x: 34, y: -36, scale: .2 },
+  pdock: { x: 34, y: -36, scale: .2, op: 0 }, pgone: { x: 34, y: -36, scale: .2, op: 0 }, // telefonda matnni yopmasin
 };
 const kf = (n) => ({ ...BASE, ...KF[n], ...(isMobile ? KF_M[n] : null) });
 
@@ -80,6 +80,8 @@ const stageEl = $("#stage");
 const atmoDark = $(".atmo-dark");
 let lastT = performance.now();
 
+const filterCache = new WeakMap();
+function setFilter(el, v) { if (filterCache.get(el) !== v) { filterCache.set(el, v); el.style.filter = v; } }
 function render() {
   const now = performance.now();
   const dt = Math.min(64, now - lastT) / 16.67; lastT = now;
@@ -105,7 +107,8 @@ function render() {
     const rz = d * (R.rz * c + o * R.row * 3), ry = d * R.ry * c;
     el.style.transform = `translate(-50%,-50%) translate3d(${X.toFixed(1)}px,${Y.toFixed(1)}px,0) rotateY(${ry.toFixed(2)}deg) rotateZ(${rz.toFixed(2)}deg) scale(${sc.toFixed(4)})`;
     el.style.opacity = op.toFixed(3);
-    el.style.filter = blur > .2 ? `blur(${blur.toFixed(1)}px)` : "none";
+    el.style.visibility = op < .005 ? "hidden" : "visible";
+    setFilter(el, blur > .4 ? `blur(${Math.round(blur)}px)` : "none");
     el.style.zIndex = String(10 - Math.round(ao * 3));
 
     // Soya: yorug'lik yuqori-chapdan. Qadoq ko'tarilsa soya kichrayadi, xiralashadi va ochadi;
@@ -118,9 +121,9 @@ function render() {
     const sh = shadowEls[i];
     sh.style.transform = `translate3d(${(X + d * rz * 2.2 + 10 * sc).toFixed(1)}px,${(floorY + 4 * sc).toFixed(1)}px,0) scale(${sx.toFixed(3)},${(sx * clamp(1 - lift * .003, .6, 1)).toFixed(3)})`;
     sh.style.opacity = sOp.toFixed(3);
-    sh.style.filter = `blur(${(3 + lift * .18).toFixed(1)}px)`;
+    setFilter(sh, `blur(${Math.round(3 + lift * .18)}px)`);
     const dx = (-rz * 1.1 - ry * .45 + 12) * sc, dy = (26 + lift * .25) * sc;
-    imgEls[i].style.filter = `drop-shadow(${dx.toFixed(1)}px ${dy.toFixed(1)}px ${(30 * sc + lift * .3).toFixed(1)}px rgba(0,0,0,${(.42 * (1 - R.dark * .3)).toFixed(2)}))`;
+    if (op > .005) setFilter(imgEls[i], `drop-shadow(${Math.round(dx / 2) * 2}px ${Math.round(dy / 2) * 2}px ${Math.round((30 * sc + lift * .3) / 3) * 3}px rgba(0,0,0,${(.42 * (1 - R.dark * .3)).toFixed(1)}))`);
   });
   pedestal.style.transform = `translate3d(${(d * R.x * vw).toFixed(1)}px,${(R.y * vh + prodH * R.scale * .5).toFixed(1)}px,0) scale(${R.scale.toFixed(3)})`;
   pedestal.style.opacity = (R.ped * R.op).toFixed(3);
@@ -193,15 +196,18 @@ addEventListener("scroll", () => document.body.classList.toggle("is-scrolled", s
 const t = (key) => (I18N[store.lang] && I18N[store.lang][key]) ?? I18N.uz[key] ?? "";
 const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 function splitWords(el, text) {
-  el.innerHTML = text.trim().split(/\s+/).map((w) => `<span class="w"><span>${esc(w)}</span></span>`).join(" ");
+  el.innerHTML = text.trim().split("|").map((line) =>
+    line.trim().split(/\s+/).map((w) => `<span class="w"><span>${esc(w)}</span></span>`).join(" ")).join("<br>");
 }
 function applyLang(lang) {
   store.lang = LANGS.includes(lang) ? lang : "uz";
   const html = document.documentElement;
   html.lang = store.lang; html.dir = store.lang === "ar" ? "rtl" : "ltr";
+  const touch = matchMedia("(hover: none)").matches;
   $$("[data-i18n]").forEach((el) => {
-    const v = t(el.dataset.i18n);
-    if (el.hasAttribute("data-split")) splitWords(el, v); else el.textContent = v;
+    const key = el.dataset.i18n === "range.hint" && touch ? "range.hintTouch" : el.dataset.i18n;
+    const v = t(key);
+    if (el.hasAttribute("data-split")) splitWords(el, v); else el.textContent = v.replace(/\|/g, " ");
   });
   $$("[data-i18n-aria]").forEach((el) => el.setAttribute("aria-label", t(el.dataset.i18nAria)));
   document.title = t("meta.title");
@@ -348,6 +354,8 @@ function buildMaster() {
     const at = topOf(sec) - vh * .55;
     const words = $$("[data-split] .w > span", sec);
     if (words.length) master.fromTo(words, { yPercent: 115 }, { yPercent: 0, duration: vh * .3, ease: EASE_IN, stagger: { amount: vh * .12 } }, at);
+    const copy = $$(".copy, .solo-top, .solo-p", sec);
+    if (copy.length) master.fromTo(copy, { opacity: 1 }, { opacity: 0, duration: vh * .3, ease: "none", immediateRender: false }, topOf(sec) + vh * .2);
     const old = $(".old s", sec);
     if (old) master.fromTo(old, { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: vh * .25, ease: EASE_IN }, at);
   });
@@ -484,6 +492,7 @@ async function openProduct(i) {
   gsap.to(S, { ...kf("phero"), duration: .9, ease: "power3.inOut", overwrite: "auto" });
   await curtainSwap(() => {
     homeEl.hidden = true; productEl.hidden = false;
+    lenis && lenis.resize();
     backLink.hidden = false; soundBtn.hidden = true;
     renderOthers();
     scrollTo(0, true); window.scrollTo(0, 0);
@@ -506,6 +515,7 @@ async function goHome(target) {
   await curtainSwap(() => {
     store.view = "home";
     productEl.hidden = true; homeEl.hidden = false;
+    lenis && lenis.resize();
     backLink.hidden = true; soundBtn.hidden = false;
     buildMaster();
     ScrollTrigger.refresh();
