@@ -198,22 +198,24 @@ html[lang="ar"] .old s { font-family: var(--f-body); letter-spacing: 0; }
 .hero-name { position: absolute; top: 96px; left: 0; right: 0; margin: 0; text-align: center; font-size: var(--t-display); line-height: .82;
   color: color-mix(in srgb, var(--accent) 75%, white); white-space: nowrap; pointer-events: none; font-family: "Oswald", sans-serif; z-index: 0; }
 .hero-name .hn-inner { display: inline-block; }
-/* Ciao naqshi: yon mahsulotlar chetda, nomi va strelkasi aynan ularning tagida.
-   .peek — yon qadoqni qoplaydigan bosish maydoni (sahna pointer-events: none). */
-.peek { position: absolute; z-index: 2; top: 58%; width: min(17vw, 240px); height: 32svh; translate: -50% -50%; }
-.peek-prev { left: 10vw; } .peek-next { left: 90vw; }
-[dir="rtl"] .peek-prev { left: 90vw; } [dir="rtl"] .peek-next { left: 10vw; }
-.peek-in { position: absolute; top: calc(100% + var(--s3)); left: 50%; translate: -50% 0; display: flex; align-items: center; gap: var(--s2); }
-.peek-arrow { flex: none; width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.1);
+/* Ciao naqshi: strelkalar markaziy qadoqning ikki yonida, uning o'rtasi balandligida.
+   --pw — markaziy qadoq eni (sahnadagi .prod balandligi × hero scale .82 × nisbat .74). */
+.hero { --pw: calc(min(62svh, 640px) * .82 * .74); }
+.peek { position: absolute; z-index: 2; top: calc(50% + 8vh); translate: -50% -50%; }
+.peek-prev { left: calc(50% - var(--pw) / 2 - 80px); } .peek-next { left: calc(50% + var(--pw) / 2 + 80px); }
+[dir="rtl"] .peek-prev { left: calc(50% + var(--pw) / 2 + 80px); } [dir="rtl"] .peek-next { left: calc(50% - var(--pw) / 2 - 80px); }
+.peek-in { display: flex; flex-direction: column; align-items: center; gap: var(--s2); }
+.peek-next .peek-in { flex-direction: column-reverse; }
+.peek-next .peek-txt { text-align: center; }
+.peek-arrow { flex: none; width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.1);
   box-shadow: inset 0 0 0 1px var(--line); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); transition: background .3s, box-shadow .3s, transform .4s var(--ease-out); }
 .peek-arrow svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.75; }
 [dir="rtl"] .peek-arrow svg { transform: scaleX(-1); }
 .peek:hover .peek-arrow, .peek:focus-visible .peek-arrow { background: #fff; color: var(--bg2); box-shadow: none; }
 .peek-prev:hover .peek-arrow { transform: translateX(-4px); } .peek-next:hover .peek-arrow { transform: translateX(4px); }
-.peek-txt { display: grid; gap: 4px; text-align: start; }
-.peek-next .peek-txt { text-align: end; }
+.peek-txt { display: grid; gap: 4px; text-align: center; justify-items: center; }
 .peek-txt .mono { color: var(--muted); }
-.peek-txt b { font: 700 var(--t-20)/1 "Oswald", sans-serif; text-transform: uppercase; letter-spacing: .02em; white-space: nowrap; }
+.peek-txt b { font: 700 var(--t-16)/1 "Oswald", sans-serif; text-transform: uppercase; letter-spacing: .02em; white-space: nowrap; }
 .hero-meta { position: absolute; left: var(--gutter); right: var(--gutter); bottom: 104px; display: flex; justify-content: center; text-align: center; pointer-events: none; }
 .hero-line { margin: 0; font: 500 var(--t-20)/1.3 var(--f-body); }
 .hero-bar { position: absolute; left: var(--gutter); right: var(--gutter); bottom: var(--s5); display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: var(--s2);
@@ -404,8 +406,8 @@ html[lang="ar"] #menu a { line-height: 1.3; }
   .arrow-prev, .arrow-next { top: auto; bottom: 168px; translate: none; width: 48px; height: 48px; }
   .arrow-prev { inset-inline-start: var(--s2); } .arrow-next { inset-inline-end: var(--s2); }
   .hero-name { top: 84px; }
-  .peek { top: auto; bottom: 96px; width: auto; height: auto; translate: none; }
-  .peek-in { position: static; translate: none; gap: var(--s1); }
+  .peek { top: auto; bottom: 96px; translate: none; }
+  .peek-in, .peek-next .peek-in { flex-direction: row; gap: var(--s1); }
   .peek-prev { left: var(--s2); } .peek-next { left: auto; right: var(--s2); }
   [dir="rtl"] .peek-prev { left: auto; right: var(--s2); } [dir="rtl"] .peek-next { right: auto; left: var(--s2); }
   .peek-txt b { font-size: var(--t-14); }
