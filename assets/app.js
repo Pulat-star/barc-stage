@@ -121,9 +121,7 @@ function render() {
     const sh = shadowEls[i];
     sh.style.transform = `translate3d(${(X + d * rz * 2.2 + 10 * sc).toFixed(1)}px,${(floorY + 4 * sc).toFixed(1)}px,0) scale(${sx.toFixed(3)},${(sx * clamp(1 - lift * .003, .6, 1)).toFixed(3)})`;
     sh.style.opacity = sOp.toFixed(3);
-    setFilter(sh, `blur(${Math.round(3 + lift * .18)}px)`);
-    const dx = (-rz * 1.1 - ry * .45 + 12) * sc, dy = (26 + lift * .25) * sc;
-    if (op > .005) setFilter(imgEls[i], `drop-shadow(${Math.round(dx / 2) * 2}px ${Math.round(dy / 2) * 2}px ${Math.round((30 * sc + lift * .3) / 3) * 3}px rgba(0,0,0,${(.42 * (1 - R.dark * .3)).toFixed(1)}))`);
+    // Qadoqning o'z soyasi CSS'da qat'iy (GPU bir marta chizadi); harakatni pol soyasi beradi.
   });
   pedestal.style.transform = `translate3d(${(d * R.x * vw).toFixed(1)}px,${(R.y * vh + prodH * R.scale * .5).toFixed(1)}px,0) scale(${R.scale.toFixed(3)})`;
   pedestal.style.opacity = (R.ped * R.op).toFixed(3);
@@ -136,10 +134,10 @@ function render() {
 const cvs = $("#bubbles"), ctx = cvs.getContext("2d");
 const bubCol = { r: 197, g: 139, b: 255 };
 const bubbles = [];
-const BUB_MAX = reduced ? 0 : 110;
+const BUB_MAX = reduced ? 0 : (matchMedia("(max-width: 860px)").matches ? 40 : 110);
 function sizeCanvas() {
   prodH = prodEls[0].offsetHeight;
-  const dpr = Math.min(devicePixelRatio || 1, 1.5);
+  const dpr = isMobile ? 1 : Math.min(devicePixelRatio || 1, 1.5);
   cvs.width = innerWidth * dpr; cvs.height = innerHeight * dpr;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
@@ -179,7 +177,7 @@ function marqueeTick(dt) {
 /* ---------------- Smooth scroll ---------------- */
 let lenis = null;
 if (!reduced && window.Lenis) {
-  lenis = new Lenis({ duration: 1.15, smoothWheel: true, syncTouch: true, syncTouchLerp: .08 });
+  lenis = new Lenis({ duration: 1.15, smoothWheel: true, syncTouch: false });
   lenis.on("scroll", (e) => { mqVel = e.velocity * 10; ScrollTrigger.update(); });
   gsap.ticker.add((t) => lenis.raf(t * 1000));
   gsap.ticker.lagSmoothing(0);
@@ -230,7 +228,7 @@ function themeTransition(i, instant) {
   const c = hexRgb(th.accent);
   gsap.to(bubCol, { r: c.r, g: c.g, b: c.b, duration: d, ease: EASE_IO, overwrite: "auto" });
   const next = atmoLayers[1 - atmoFront], prev = atmoLayers[atmoFront];
-  next.style.backgroundImage = `url(assets/img/${PRODUCTS[i].id}-scent.webp)`;
+  next.style.backgroundImage = `url(assets/img/${PRODUCTS[i].id}-atmo.webp)`;
   gsap.to(next, { opacity: .24, duration: d, ease: EASE_IO, overwrite: "auto" });
   gsap.to(prev, { opacity: 0, duration: d, ease: EASE_IO, overwrite: "auto" });
   atmoFront = 1 - atmoFront;
@@ -327,10 +325,14 @@ function buildMaster() {
   const vh = innerHeight;
   const maxScroll = Math.max(1, document.documentElement.scrollHeight - vh);
   master = gsap.timeline({ paused: true });
+  // Barcha o'lchovlar oldindan bir marta: tween yaratish stil yozadi, keyingi o'qish esa
+  // brauzerni sahifani qayta hisoblashga majburlaydi (telefonda qaytishdagi qotish shundan edi).
+  const TOP = new Map($$("#home .sec, #home .range, #foot").map((el) => [el, topOf(el)]));
+  const top = (el) => (TOP.has(el) ? TOP.get(el) : topOf(el));
 
   // 1) Sahna kalit kadrlari — har bo'lim label
   const pts = LABELS.map((l) => {
-    let pos = topOf($(secOf[l]));
+    let pos = top($(secOf[l]));
     if (l === "hero") pos = 0;
     if (l === "faq") pos -= vh * .2;
     if (l === "end") pos = Math.min(maxScroll, pos - vh * .4);
@@ -351,22 +353,22 @@ function buildMaster() {
 
   $$("#home .sec, #home .range").forEach((sec) => {
     if (sec.id === "s-hero") return;
-    const at = topOf(sec) - vh * .55;
+    const at = top(sec) - vh * .55;
     const words = $$("[data-split] .w > span", sec);
     if (words.length) master.fromTo(words, { yPercent: 115 }, { yPercent: 0, duration: vh * .3, ease: EASE_IN, stagger: { amount: vh * .12 } }, at);
     const copy = $$(".copy, .solo-top, .solo-p", sec);
-    if (copy.length) master.fromTo(copy, { opacity: 1 }, { opacity: 0, duration: vh * .3, ease: "none", immediateRender: false }, topOf(sec) + vh * .2);
+    if (copy.length) master.fromTo(copy, { opacity: 1 }, { opacity: 0, duration: vh * .3, ease: "none", immediateRender: false }, top(sec) + vh * .2);
     const old = $(".old s", sec);
     if (old) master.fromTo(old, { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: vh * .25, ease: EASE_IN }, at);
   });
   const steps = $$(".step");
-  master.fromTo(steps, { y: 48, opacity: 0 }, { y: 0, opacity: 1, duration: vh * .3, ease: EASE_IN, stagger: vh * .08 }, topOf($("#s-usage")) - vh * .3);
+  master.fromTo(steps, { y: 48, opacity: 0 }, { y: 0, opacity: 1, duration: vh * .3, ease: EASE_IN, stagger: vh * .08 }, top($("#s-usage")) - vh * .3);
   const path = $("#draw-path"), len = path.getTotalLength();
   path.style.strokeDasharray = len;
-  master.fromTo(path, { strokeDashoffset: len }, { strokeDashoffset: 0, duration: vh * 1.2, ease: "none" }, topOf($("#s-usage")) - vh * .5);
-  master.fromTo(".range-head, .range-hint", { opacity: 0, y: 32 }, { opacity: 1, y: 0, duration: vh * .3, ease: EASE_IN }, topOf($("#s-range")) - vh * .3);
-  master.fromTo(".rhit-label", { opacity: 0 }, { opacity: 1, duration: vh * .2, stagger: vh * .05 }, topOf($("#s-range")) - vh * .1);
-  master.fromTo(".faq-list details", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: vh * .25, stagger: vh * .04, ease: EASE_IN }, topOf($("#s-faq")) - vh * .5);
+  master.fromTo(path, { strokeDashoffset: len }, { strokeDashoffset: 0, duration: vh * 1.2, ease: "none" }, top($("#s-usage")) - vh * .5);
+  master.fromTo(".range-head, .range-hint", { opacity: 0, y: 32 }, { opacity: 1, y: 0, duration: vh * .3, ease: EASE_IN }, top($("#s-range")) - vh * .3);
+  master.fromTo(".rhit-label", { opacity: 0 }, { opacity: 1, duration: vh * .2, stagger: vh * .05 }, top($("#s-range")) - vh * .1);
+  master.fromTo(".faq-list details", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: vh * .25, stagger: vh * .04, ease: EASE_IN }, top($("#s-faq")) - vh * .5);
   master.set({}, {}, maxScroll);
 
   masterST = ScrollTrigger.create({
