@@ -3,17 +3,40 @@
    1 sahna (#stage) · 1 master timeline (scroll scrub) · 1 store
    Mahsulot almashsa: CSS ranglar, fon, pufakchalar — bir vaqtda 0.8s.
    ============================================================= */
-(() => {
+(async () => {
 gsap.registerPlugin(ScrollTrigger);
 
-const PRODUCTS = [
-  { id: "amethyst", name: "Amethyst",      img: "assets/img/amethyst.webp",
-    theme: { bg: "#1E0A2E", bg2: "#0B0414", surface: "#6A1FA8", accent: "#C58BFF", glow: "#9B3DEB" } },
-  { id: "crystal",  name: "Crystal Bloom", img: "assets/img/crystal.webp",
-    theme: { bg: "#071A45", bg2: "#030A1E", surface: "#1C55D6", accent: "#7DC2FF", glow: "#2F7BFF" } },
-  { id: "original", name: "Original",      img: "assets/img/original.webp",
-    theme: { bg: "#062A1A", bg2: "#02130B", surface: "#1E8A3E", accent: "#8EE58A", glow: "#2FBF55" } },
-];
+/* ---------------- Ma'lumot: admin paneldan (D1), bo'lmasa — zaxira ----------------
+   Sayt API ishlamasa ham ochilaveradi: quyidagi zaxira ro'yxat va i18n.js matnlari ishlaydi. */
+const CAP = (k) => Object.fromEntries(["uz", "ru", "en", "ar"].map((l) => [l, (I18N[l] || {})[k] || ""]));
+const FALLBACK = [
+  { id: "amethyst", name: "Amethyst", theme: { bg: "#1E0A2E", bg2: "#0B0414", surface: "#6A1FA8", accent: "#C58BFF", glow: "#9B3DEB" } },
+  { id: "crystal", name: "Crystal Bloom", theme: { bg: "#071A45", bg2: "#030A1E", surface: "#1C55D6", accent: "#7DC2FF", glow: "#2F7BFF" } },
+  { id: "original", name: "Original", theme: { bg: "#062A1A", bg2: "#02130B", surface: "#1E8A3E", accent: "#8EE58A", glow: "#2FBF55" } },
+].map((p) => ({ ...p, img: `assets/img/${p.id}.webp`, atmo: `assets/img/${p.id}-atmo.webp`,
+  gallery: [["studio", null], ["scent", `prod.${p.id}.g1`], ["room", null], ["result", `prod.${p.id}.g2`], ["cold", `prod.${p.id}.g3`]]
+    .map(([f, k]) => ({ src: `assets/img/${p.id}-${f}.webp`, cap: k ? CAP(k) : { uz: p.name } })) }));
+
+async function loadSite() {
+  try {
+    const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), 3500);
+    const res = await fetch("/api/site", { signal: ctl.signal }); clearTimeout(tm);
+    if (!res.ok) throw new Error(res.status);
+    const d = await res.json();
+    if (!d.products || !d.products.length) throw new Error("empty");
+    for (const [l, map] of Object.entries(d.texts || {})) Object.assign(I18N[l] || (I18N[l] = {}), map);
+    const list = d.products.map((p) => {
+      for (const [l, f] of Object.entries(p.i18n || {}))
+        for (const [k, v] of Object.entries(f)) if (v) (I18N[l] || (I18N[l] = {}))[`prod.${p.id}.${k}`] = v;
+      return { id: p.id, name: p.name, img: p.pack, atmo: p.atmo, theme: p.theme, gallery: p.gallery || [] };
+    });
+    return { list, contacts: d.contacts || {} };
+  } catch (e) {
+    return { list: FALLBACK, contacts: {} };
+  }
+}
+const SITE = await loadSite();
+const PRODUCTS = SITE.list;
 const N = PRODUCTS.length;
 const LANGS = ["uz", "ru", "en", "ar"];
 const EASE_IN = "power3.out", EASE_IO = "power2.inOut", THEME_DUR = 0.8;
@@ -68,9 +91,27 @@ const S = kf("hero");
 const R = { ...S, scale: .6, y: 20, op: 0 };
 const slots = PRODUCTS.map((_, i) => rel(i, 0));
 const hoverAmt = PRODUCTS.map(() => 0);
-function rel(j, a) { const d = (j - a + N) % N; return d === 0 ? 0 : d === 1 ? 1 : -1; }
+function rel(j, a) { let d = (j - a + N) % N; if (d > N / 2) d -= N; return d; }
+// Qatorda (range) mahsulotlar ko'p bo'lsa — oraliq va o'lcham moslashadi
+const rowGap = () => isMobile ? Math.min(31, 76 / Math.max(1, N - 1)) : Math.min(28, 72 / Math.max(1, N - 1));
+const rowK = N <= 3 ? 1 : 3 / N;
 
 /* ---------------- Render (har kadr) ---------------- */
+(() => {
+  const stage = $("#stage"), dots = $(".hero-dots");
+  $$(".prod, .floor-shadow", stage).forEach((el) => el.remove());
+  PRODUCTS.forEach((p, i) => {
+    stage.insertAdjacentHTML("beforeend", `<i class="floor-shadow"></i>`);
+    stage.insertAdjacentHTML("beforeend", `<div class="prod" data-i="${i}"><img src="${p.img}" alt="" draggable="false"></div>`);
+  });
+  dots.innerHTML = PRODUCTS.map((p, i) => `<button type="button" role="tab" data-go="${i}" aria-label="${p.name.replace(/"/g, "")}" data-cursor></button>`).join("");
+  // Kontaktlar (admin → Sozlamalar)
+  const c = SITE.contacts, links = [];
+  if (c.instagram) links.push(`<a href="${c.instagram}" target="_blank" rel="noopener" data-cursor>Instagram</a>`);
+  if (c.telegram) links.push(`<a href="${c.telegram}" target="_blank" rel="noopener" data-cursor>Telegram</a>`);
+  if (c.phone) links.push(`<a href="tel:${c.phone.replace(/[^+\d]/g, "")}" data-cursor>${c.phone}</a>`);
+  const box = $("#foot-links"); if (box) box.innerHTML = links.join(" · ");
+})();
 const prodEls = $$("#stage .prod");
 const imgEls = prodEls.map((el) => $("img", el));
 const shadowEls = $$("#stage .floor-shadow");
@@ -89,20 +130,21 @@ function render() {
   for (const key in S) R[key] = lerp(R[key], S[key], k);
 
   const vw = innerWidth / 100, vh = innerHeight / 100, d = dirSign(), t = now / 1000;
-  const gap = lerp(isMobile ? 47 : 40, isMobile ? 31 : 28, R.row);
+  const gap = lerp(isMobile ? 47 : 40, rowGap(), R.row);
   const sideS = lerp(.5, R.scale, R.row);
   const sideOp = lerp(.6, 1, R.row) * R.nb;
   const sideBlur = lerp(1.5, 0, R.row);
 
   prodEls.forEach((el, i) => {
-    const o = slots[i], ao = Math.abs(o), c = clamp(1 - ao, 0, 1);
+    // Karuselda — faol mahsulotga nisbatan; qatorda — o'z tartibi bo'yicha, markazdan teng
+    const o = lerp(slots[i], i - (N - 1) / 2, R.row), ao = Math.abs(o), c = clamp(1 - ao, 0, 1);
     hoverAmt[i] = lerp(hoverAmt[i], store.hover === i ? 1 : 0, k);
     const bob = reduced ? 0 : Math.sin(t * 1.1 + i * 1.7) * 10 * R.bob;
     const X = d * (R.x * c + o * gap) * vw;
     const yBase = R.y * lerp(1, c, R.row) + o * R.row * -4; // karuselda yon qadoqlar ham markaz bilan bir chiziqda
     const Y = yBase * vh + bob;
-    const sc = lerp(sideS, R.scale, c) * (1 + hoverAmt[i] * .07);
-    const op = lerp(sideOp, 1, c) * R.op * clamp(2 - ao, 0, 1);
+    const sc = lerp(sideS, R.scale, c) * (1 + hoverAmt[i] * .07) * lerp(1, rowK, R.row);
+    const op = lerp(sideOp, 1, c) * R.op * lerp(clamp(2 - ao, 0, 1), clamp(N / 2 + .6 - ao, 0, 1), R.row);
     const blur = lerp(sideBlur, 0, c);
     const rz = d * (R.rz * c + o * R.row * 3), ry = d * R.ry * c;
     el.style.transform = `translate(-50%,-50%) translate3d(${X.toFixed(1)}px,${Y.toFixed(1)}px,0) rotateY(${ry.toFixed(2)}deg) rotateZ(${rz.toFixed(2)}deg) scale(${sc.toFixed(4)})`;
@@ -228,8 +270,8 @@ function themeTransition(i, instant) {
   const c = hexRgb(th.accent);
   gsap.to(bubCol, { r: c.r, g: c.g, b: c.b, duration: d, ease: EASE_IO, overwrite: "auto" });
   const next = atmoLayers[1 - atmoFront], prev = atmoLayers[atmoFront];
-  next.style.backgroundImage = `url(assets/img/${PRODUCTS[i].id}-atmo.webp)`;
-  gsap.to(next, { opacity: .24, duration: d, ease: EASE_IO, overwrite: "auto" });
+  next.style.backgroundImage = PRODUCTS[i].atmo ? `url(${PRODUCTS[i].atmo})` : "none";
+  gsap.to(next, { opacity: PRODUCTS[i].atmo ? .24 : 0, duration: d, ease: EASE_IO, overwrite: "auto" });
   gsap.to(prev, { opacity: 0, duration: d, ease: EASE_IO, overwrite: "auto" });
   atmoFront = 1 - atmoFront;
   $('meta[name="theme-color"]').content = th.bg;
@@ -303,9 +345,9 @@ function renderRange() {
     });
     rangeHits.addEventListener("pointerleave", () => themeTransition(store.active));
   }
-  const gap = isMobile ? 31 : 28;
+  const gap = rowGap();
   $$(".rhit", rangeHits).forEach((a) => {
-    const o = rel(+a.dataset.j, store.active);
+    const o = +a.dataset.j - (N - 1) / 2;
     a.style.left = `calc(50% + ${dirSign() * o * gap}vw)`;
     a.style.top = `calc(50% + ${o * -4}vh)`;
     $(".rhit-more", a).textContent = t("range.more") + " →";
@@ -690,7 +732,7 @@ form.addEventListener("submit", async (e) => {
   const btn = $('button[type="submit"]', form); btn.disabled = true; $("#err-send").textContent = "";
   let orderNo = null, demo = false;
   try {
-    const url = (window.BARC_CONFIG || {}).orderEndpoint;
+    const url = (window.BARC_CONFIG || {}).orderEndpoint || (location.hostname.endsWith("github.io") ? "" : "/api/orders");
     if (url) {
       const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       if (!res.ok) throw new Error(String(res.status));
@@ -728,12 +770,7 @@ function galGo(n, instant) {
 function renderGallery() {
   if (!galTrack) return;
   const p = PRODUCTS[store.active];
-  const shots = [
-    { src: `assets/img/${p.id}-scent.webp`, cap: t(`prod.${p.id}.g1`) },
-    { src: `assets/img/${p.id}-result.webp`, cap: t(`prod.${p.id}.g2`) },
-    { src: `assets/img/${p.id}-cold.webp`, cap: t(`prod.${p.id}.g3`) },
-    { src: "assets/img/lineup-photo.webp", cap: t("p.g4"), wide: true },
-  ];
+  const shots = (p.gallery || []).map((g) => ({ src: g.src, cap: (g.cap || {})[store.lang] || (g.cap || {}).uz || "" }));
   galTrack.innerHTML = shots.map((s, k) =>
     `<figure class="${s.wide ? "wide" : ""}"><img src="${s.src}" alt="${esc(s.cap)}" loading="lazy" draggable="false">
        <figcaption><span class="mono">0${k + 1} · ${esc(p.name)}</span>${esc(s.cap)}</figcaption></figure>`).join("");

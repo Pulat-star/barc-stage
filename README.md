@@ -1,14 +1,35 @@
-# BÄRC — 3in1 PODS sayti
+# BÄRC — sayt, admin panel va CRM
 
-Statik sayt (HTML + GSAP + Lenis). Build kerak emas.
+**Sayt:** https://barc-stage.pages.dev · **Admin:** https://barc-stage.pages.dev/admin/
 
-    python3 -m http.server 4321   # → http://localhost:4321
+Cloudflare (bepul tarif): Pages (statik sayt) + Pages Functions (API) + D1 (ma'lumotlar bazasi).
 
-- `assets/app.js` — bitta sahna, bitta master timeline, mavzu o'tishi, buyurtma
-- `assets/i18n.js` — uz / ru / en / ar (arabchada sahifa RTL)
-- `assets/style.css` — tokenlar, 8pt to'r
-- Mahsulot sahifasi: `#/amethyst`, `#/crystal`, `#/original`
+```
+public/            sayt (index.html, assets/) va admin panel (admin/)
+functions/         API: /api/site, /api/orders, /api/admin/*, /media/:id
+lib/server.js      server yordamchilari (sessiya, parol, Telegram, cheklovlar)
+schema.sql         D1 jadvallari
+seed.sql           boshlang'ich 3 mahsulot (scripts/seed.mjs yasaydi)
+```
 
-Buyurtma: `index.html` dagi `BARC_CONFIG.orderEndpoint` bo'sh bo'lsa demo rejim
-(hech qayerga yuborilmaydi). Backend `POST {items, phone, name, comment, locale, sourcePage}`
-qabul qilib `{orderNo}` qaytarishi kerak.
+## Mahalliy ishga tushirish
+
+```
+# .dev.vars:  ADMIN_PASSWORD="..."  SESSION_SECRET="..."
+npx wrangler d1 execute barc-stage-db --local --file=schema.sql
+npx wrangler d1 execute barc-stage-db --local --file=seed.sql
+npx wrangler pages dev --port 8799
+```
+
+## Joylash
+
+```
+npx wrangler pages deploy --project-name barc-stage --branch main
+```
+
+Maxfiy o'zgaruvchilar (Cloudflare → Pages → barc-stage → Settings):
+`ADMIN_PASSWORD` (boshlang'ich parol; admin paneldan o'zgartirilsa bazadagisi ishlaydi),
+`SESSION_SECRET`.
+
+Rasmlar D1 ichida saqlanadi (R2 bank kartasini talab qiladi). Admin panel rasmni
+yuklashdan oldin brauzerda tekshiradi va WebP'ga siqadi (har biri < 1.8 MB).
