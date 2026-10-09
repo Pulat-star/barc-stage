@@ -8,23 +8,33 @@ const P = [
   { id: "original", name: "Original", color: "#23963F", theme: { bg: "#062A1A", bg2: "#02130B", surface: "#1E8A3E", accent: "#8EE58A", glow: "#2FBF55" } },
 ];
 const CAP = {
-  studio: { uz: "Asl qadoq — 60 ta kapsula", ru: "Оригинальная упаковка — 60 капсул", en: "The real pack — 60 pods", ar: "العبوة الأصلية — 60 كبسولة" },
+  studio: { uz: "Har bir qadoqda — 60 ta yuvish", ru: "В каждой упаковке — 60 стирок", en: "60 washes in every pack", ar: "60 غسلة في كل عبوة" },
   room: { uz: "Kir yuvish xonangizda doim qo‘l ostida", ru: "Всегда под рукой в вашей прачечной", en: "Always at hand in your laundry room", ar: "دائمًا في متناول يدك في غرفة الغسيل" },
+  front: { uz: "Asl qadoq — 60 ta kapsula, 1200 g", ru: "Оригинальная упаковка — 60 капсул, 1200 г", en: "The real pack — 60 pods, 1200 g", ar: "العبوة الأصلية — 60 كبسولة، 1200 غ" },
+  "34": { uz: "Tik turadigan, zip bilan yopiladigan qadoq", ru: "Пакет стоит устойчиво и закрывается на зип", en: "Stand-up pouch with a zip seal", ar: "عبوة قائمة بإغلاق سحاب" },
+  pod: { uz: "3 in 1 kapsula yaqindan", ru: "Капсула 3 в 1 крупным планом", en: "The 3-in-1 pod up close", ar: "كبسولة 3 في 1 عن قرب" },
+  back: { uz: "Orqa tomoni: qo‘llash yo‘riqnomasi va tarkib", ru: "Обратная сторона: инструкция и состав", en: "Back of pack: instructions and ingredients", ar: "الجهة الخلفية: التعليمات والمكونات" },
+  lock: { uz: "Bolalar ocholmaydigan maxsus qulf (Child-Lock)", ru: "Замок защиты от детей (Child-Lock)", en: "Child-Lock safety seal", ar: "قفل أمان للأطفال (Child-Lock)" },
 };
 const q = (s) => "'" + String(s).replace(/'/g, "''") + "'";
 const t = Date.now(); let sql = "DELETE FROM products;\n";
 P.forEach((p, k) => {
   const cap = (key) => Object.fromEntries(L.map((l) => [l, I[l][key] || ""]));
+  // Asosan haqiqiy suratlar (fotosessiya, sifati oshirilgan) + bitta ifor kayfiyati
   const gallery = [
     { src: `assets/img/${p.id}-studio.webp`, cap: CAP.studio },
+    { src: `assets/img/${p.id}-real-front.webp`, cap: CAP.front },
+    { src: `assets/img/${p.id}-real-34.webp`, cap: CAP["34"] },
     { src: `assets/img/${p.id}-scent.webp`, cap: cap(`prod.${p.id}.g1`) },
+    { src: `assets/img/${p.id}-real-pod.webp`, cap: CAP.pod },
     { src: `assets/img/${p.id}-room.webp`, cap: CAP.room },
-    { src: `assets/img/${p.id}-result.webp`, cap: cap(`prod.${p.id}.g2`) },
-    { src: `assets/img/${p.id}-cold.webp`, cap: cap(`prod.${p.id}.g3`) },
+    { src: `assets/img/${p.id}-real-back.webp`, cap: CAP.back },
+    { src: `assets/img/${p.id}-real-lock.webp`, cap: CAP.lock },
   ];
   const i18n = Object.fromEntries(L.map((l) => [l, Object.fromEntries(["scent", "line", "hook", "desc", "for"].map((f) => [f, I[l][`prod.${p.id}.${f}`] || ""]))]));
   sql += `INSERT INTO products (id, sort, status, name, color, theme, pack, atmo, gallery, i18n, created_at, updated_at) VALUES (${[
     q(p.id), k + 1, q("published"), q(p.name), q(p.color), q(JSON.stringify(p.theme)), q(`assets/img/${p.id}.webp`),
     q(`assets/img/${p.id}-atmo.webp`), q(JSON.stringify(gallery)), q(JSON.stringify(i18n)), t, t].join(", ")});\n`;
 });
-fs.writeFileSync("seed.sql", sql); console.log("seed.sql", sql.length, "bytes");
+fs.writeFileSync("seed.sql", sql);
+fs.writeFileSync("update-gallery.sql", P.map((p) => { const m = sql.match(new RegExp(`VALUES \\('${p.id}'.*?'(\\[\\{"src".*?\\])'`)); return `UPDATE products SET gallery = '${m[1]}', updated_at = ${t} WHERE id = '${p.id}';`; }).join("\n") + "\n"); console.log("seed.sql", sql.length, "bytes");

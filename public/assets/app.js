@@ -14,7 +14,7 @@ const FALLBACK = [
   { id: "crystal", name: "Crystal Bloom", theme: { bg: "#071A45", bg2: "#030A1E", surface: "#1C55D6", accent: "#7DC2FF", glow: "#2F7BFF" } },
   { id: "original", name: "Original", theme: { bg: "#062A1A", bg2: "#02130B", surface: "#1E8A3E", accent: "#8EE58A", glow: "#2FBF55" } },
 ].map((p) => ({ ...p, img: `assets/img/${p.id}.webp`, atmo: `assets/img/${p.id}-atmo.webp`,
-  gallery: [["studio", null], ["scent", `prod.${p.id}.g1`], ["room", null], ["result", `prod.${p.id}.g2`], ["cold", `prod.${p.id}.g3`]]
+  gallery: [["studio", null], ["real-front", null], ["real-34", null], ["scent", `prod.${p.id}.g1`], ["real-pod", null], ["room", null], ["real-back", null], ["real-lock", null]]
     .map(([f, k]) => ({ src: `assets/img/${p.id}-${f}.webp`, cap: k ? CAP(k) : { uz: p.name } })) }));
 
 async function loadSite() {
