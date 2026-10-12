@@ -313,8 +313,7 @@ html[lang="ar"] .old s { font-family: var(--f-body); letter-spacing: 0; }
 /* Rasm qirqilmaydi: o'z nisbatida, to'liq ko'rinadi */
 .gal-track .gal-img { height: min(56svh, 620px); aspect-ratio: var(--ar, 3 / 4); border-radius: var(--r-lg); overflow: hidden; background: rgba(255,255,255,.04); }
 .gal-track img { height: 100%; width: 100%; object-fit: contain; user-select: none; display: block; }
-.gal-track figcaption { max-width: 100%; width: 0; min-width: 100%; padding: var(--s2) var(--s3); border-radius: var(--r-md);
-  background: rgba(255,255,255,.08); box-shadow: inset 0 0 0 1px var(--line); font: 600 var(--t-20)/1.4 var(--f-body); color: #fff; }
+.gal-track figcaption { max-width: 100%; width: 0; min-width: 100%; padding: 0 4px; font: 600 var(--t-20)/1.4 var(--f-body); color: #fff; }
 .gal-track figcaption .mono { display: block; color: color-mix(in srgb, var(--accent) 70%, white); margin-bottom: 6px; font-size: var(--t-14); }
 .others { padding: var(--s8) 0 var(--s12); border-top: 1px solid var(--line); position: relative; z-index: 3; }
 .others-list { display: flex; gap: var(--s3); margin-top: var(--s3); overflow-x: auto; padding-bottom: var(--s2); }
@@ -435,7 +434,7 @@ html[lang="ar"] #menu a { line-height: 1.3; }
   #order { top: auto; bottom: 0; inset-inline: 0; width: 100%; max-height: 92svh; border-radius: var(--r-lg) var(--r-lg) 0 0; padding: var(--s3) var(--s2) calc(var(--s3) + env(safe-area-inset-bottom)); }
   .gal-track .gal-img { height: 52svh; }
   .p-hook { font-size: var(--t-20); }
-  .gal-track figcaption { font-size: var(--t-16); padding: 12px var(--s2); }
+  .gal-track figcaption { font-size: var(--t-16); }
   .gal-track figcaption .mono { font-size: var(--t-12); }
   .ocard { width: 220px; }
   #menu .m-langs { display: flex; }
