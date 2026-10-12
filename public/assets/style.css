@@ -289,19 +289,19 @@ html[lang="ar"] .old s { font-family: var(--f-body); letter-spacing: 0; }
 .p-chips { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); margin-top: var(--s4); color: var(--muted); }
 .p-scent { color: var(--accent); margin: var(--s2) 0 0; }
 .p-hook { font: 500 var(--t-32)/1.2 var(--f-body); margin: var(--s4) 0 0; max-width: 18ch; letter-spacing: -.01em; }
-.p-for { margin: 0; font-size: var(--t-16); line-height: 1.6; color: var(--muted); }
-.p-body { max-width: 760px; display: grid; gap: 0; padding-bottom: var(--s12); }
+.p-for { margin: 0; font-size: var(--t-20); line-height: 1.55; color: rgba(255,255,255,.9); }
+.p-body { max-width: min(760px, 54vw); display: grid; gap: 0; padding-bottom: var(--s12); }
 .p-row { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: var(--s4); padding: var(--s5) 0; border-top: 1px solid var(--line); }
-.p-h { margin: 0; color: var(--accent); padding-top: 4px; }
+.p-h { margin: 0; color: color-mix(in srgb, var(--accent) 75%, white); padding-top: 6px; font-size: var(--t-14); }
 .p-lead { font-size: var(--t-20); line-height: 1.5; margin: 0; }
 .p-three { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s2); }
-.p-three li { display: grid; gap: 4px; } .p-three b { font: 700 var(--t-20)/1.2 var(--f-display); text-transform: uppercase; } .p-three span { color: var(--muted); }
-.p-steps, .p-safety { margin: 0; padding-inline-start: var(--s3); display: grid; gap: var(--s1); }
+.p-three li { display: grid; gap: 4px; } .p-three b { font: 700 var(--t-20)/1.2 var(--f-display); text-transform: uppercase; } .p-three span { color: rgba(255,255,255,.85); font-size: var(--t-16); }
+.p-steps, .p-safety { margin: 0; padding-inline-start: var(--s3); display: grid; gap: var(--s2); font-size: var(--t-20); line-height: 1.45; color: rgba(255,255,255,.92); }
 .p-safety li::marker { color: var(--gold); }
 .pills { display: flex; gap: var(--s1); }
 .pill { height: 40px; padding: 0 var(--s3); border-radius: var(--r-pill); box-shadow: inset 0 0 0 1px var(--line); font-weight: 600; }
 .pill.is-on { background: #fff; color: var(--bg2); }
-.p-price { color: var(--muted); margin: var(--s2) 0 var(--s3); }
+.p-price { color: rgba(255,255,255,.85); font-size: var(--t-16); margin: var(--s2) 0 var(--s3); }
 
 .gallery { padding: var(--s8) 0; border-top: 1px solid var(--line); position: relative; z-index: 3; }
 .gal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--s3); }
@@ -311,10 +311,11 @@ html[lang="ar"] .old s { font-family: var(--f-body); letter-spacing: 0; }
 .gal-track:active { cursor: grabbing; }
 .gal-track figure { margin: 0; flex: none; display: flex; flex-direction: column; gap: var(--s2); }
 /* Rasm qirqilmaydi: o'z nisbatida, to'liq ko'rinadi */
-.gal-track .gal-img { height: min(68svh, 700px); aspect-ratio: var(--ar, 3 / 4); border-radius: var(--r-lg); overflow: hidden; background: rgba(255,255,255,.04); }
+.gal-track .gal-img { height: min(56svh, 620px); aspect-ratio: var(--ar, 3 / 4); border-radius: var(--r-lg); overflow: hidden; background: rgba(255,255,255,.04); }
 .gal-track img { height: 100%; width: 100%; object-fit: contain; user-select: none; display: block; }
-.gal-track figcaption { max-width: 100%; width: 0; min-width: 100%; font: 600 var(--t-16)/1.4 var(--f-body); }
-.gal-track figcaption .mono { display: block; color: var(--accent); margin-bottom: 4px; font-weight: 600; }
+.gal-track figcaption { max-width: 100%; width: 0; min-width: 100%; padding: var(--s2) var(--s3); border-radius: var(--r-md);
+  background: rgba(255,255,255,.08); box-shadow: inset 0 0 0 1px var(--line); font: 600 var(--t-20)/1.4 var(--f-body); color: #fff; }
+.gal-track figcaption .mono { display: block; color: color-mix(in srgb, var(--accent) 70%, white); margin-bottom: 6px; font-size: var(--t-14); }
 .others { padding: var(--s8) 0 var(--s12); border-top: 1px solid var(--line); position: relative; z-index: 3; }
 .others-list { display: flex; gap: var(--s3); margin-top: var(--s3); overflow-x: auto; padding-bottom: var(--s2); }
 .ocard { flex: none; width: 280px; aspect-ratio: 3/4; border-radius: var(--r-lg); padding: var(--s3); display: flex; flex-direction: column; justify-content: space-between;
@@ -428,11 +429,14 @@ html[lang="ar"] #menu a { line-height: 1.3; }
   .rhit-more { display: none; }
   .p-hero { max-width: none; justify-content: flex-start; padding-top: 112px; min-height: 100svh; }
   .p-row { grid-template-columns: 1fr; gap: var(--s2); padding: var(--s4) 0; }
+  .p-for, .p-steps, .p-safety { font-size: var(--t-16); }
+  .p-lead { font-size: 18px; }
   .faq details p { padding-inline-end: 0; }
   #order { top: auto; bottom: 0; inset-inline: 0; width: 100%; max-height: 92svh; border-radius: var(--r-lg) var(--r-lg) 0 0; padding: var(--s3) var(--s2) calc(var(--s3) + env(safe-area-inset-bottom)); }
   .gal-track .gal-img { height: 52svh; }
   .p-hook { font-size: var(--t-20); }
-  .gal-track figcaption { font-size: var(--t-14); }
+  .gal-track figcaption { font-size: var(--t-16); padding: 12px var(--s2); }
+  .gal-track figcaption .mono { font-size: var(--t-12); }
   .ocard { width: 220px; }
   #menu .m-langs { display: flex; }
   /* scroll paytida og'ir — telefonda o'chiq */

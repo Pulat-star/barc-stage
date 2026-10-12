@@ -29,8 +29,13 @@ const q = (s) => "'" + String(s).replace(/'/g, "''") + "'";
 const t = Date.now(); let sql = "DELETE FROM products;\n";
 P.forEach((p, k) => {
   const cap = (key) => Object.fromEntries(L.map((l) => [l, I[l][key] || ""]));
-  // Faqat brend bergan asl suratlar — o'zgartirishsiz (lossless WebP)
-  const gallery = PHOTOS[p.id];
+  // Avval brend bergan asl suratlar (o'zgartirishsiz), keyin sahnalar va ifor kayfiyati
+  const gallery = [
+    ...PHOTOS[p.id],
+    { src: `assets/img/${p.id}-studio.webp`, cap: CAP.studio },
+    { src: `assets/img/${p.id}-room.webp`, cap: CAP.room },
+    { src: `assets/img/${p.id}-scent.webp`, cap: cap(`prod.${p.id}.g1`) },
+  ];
   const i18n = Object.fromEntries(L.map((l) => [l, Object.fromEntries(["scent", "line", "hook", "desc", "for"].map((f) => [f, I[l][`prod.${p.id}.${f}`] || ""]))]));
   sql += `INSERT INTO products (id, sort, status, name, color, theme, pack, atmo, gallery, i18n, created_at, updated_at) VALUES (${[
     q(p.id), k + 1, q("published"), q(p.name), q(p.color), q(JSON.stringify(p.theme)), q(`assets/img/${p.id}.webp`),

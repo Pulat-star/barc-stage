@@ -14,7 +14,8 @@ const FALLBACK = [
   { id: "crystal", name: "Crystal Bloom", theme: { bg: "#071A45", bg2: "#030A1E", surface: "#1C55D6", accent: "#7DC2FF", glow: "#2F7BFF" } },
   { id: "original", name: "Original", theme: { bg: "#062A1A", bg2: "#02130B", surface: "#1E8A3E", accent: "#8EE58A", glow: "#2FBF55" } },
 ].map((p) => ({ ...p, img: `assets/img/${p.id}.webp`, atmo: `assets/img/${p.id}-atmo.webp`,
-  gallery: (p.id === "amethyst" ? ["amethyst-photos-2", "amethyst-photos-1"] : [`${p.id}-photos`]).map((f) => ({ src: `assets/img/${f}.webp`, cap: { uz: p.name } })) }));
+  gallery: [...(p.id === "amethyst" ? ["amethyst-photos-2", "amethyst-photos-1"] : [`${p.id}-photos`]), `${p.id}-studio`, `${p.id}-room`, `${p.id}-scent`]
+    .map((f) => ({ src: `assets/img/${f}.webp`, cap: { uz: p.name } })) }));
 
 async function loadSite() {
   try {
@@ -69,8 +70,9 @@ const KF = {
   outro: { y: 6, scale: .5, dark: .5, bub: .8, bob: 1, fl: .8 },
   end:   { y: -30, scale: .6, op: 0, bub: .2 },
   phero: { x: 24, y: 4, scale: 1.05, ry: -10, bob: .6, dark: .15, bub: .3, fl: .7 },
-  pdock: { x: 40, y: -31, scale: .26, rz: -8, bob: .2, dark: .15, bub: .2 },
-  pgone: { x: 40, y: -31, scale: .26, rz: -8, op: 0, bub: .2 },
+  // Kompyuterda: matn chapda, qadoq o'ng ustunda katta holda qoladi
+  pdock: { x: 29, y: 4, scale: .82, ry: -12, bob: .5, dark: .15, bub: .25 },
+  pgone: { x: 29, y: 4, scale: .82, ry: -12, op: 0, bub: .2 },
 };
 const KF_M = {
   hero:  { y: 4, scale: .9 },
