@@ -309,13 +309,12 @@ html[lang="ar"] .old s { font-family: var(--f-body); letter-spacing: 0; }
 .gal-ctrl .mono { margin-inline-end: var(--s2); }
 .gal-track { display: flex; gap: var(--s3); overflow: hidden; cursor: grab; touch-action: pan-y; border-radius: var(--r-lg); }
 .gal-track:active { cursor: grabbing; }
-.gal-track figure { margin: 0; flex: none; height: min(72svh, 720px); border-radius: var(--r-lg); overflow: hidden; background: rgba(255,255,255,.04); }
-.gal-track figure { position: relative; aspect-ratio: 4/5; }
-.gal-track img { height: 100%; width: 100%; object-fit: cover; user-select: none; }
-.gal-track figure.wide { aspect-ratio: 1280/892; }
-.gal-track figcaption { position: absolute; inset: auto 0 0 0; padding: var(--s6) var(--s3) var(--s3);
-  background: linear-gradient(180deg, transparent, rgba(0,0,0,.72)); font: 600 var(--t-20)/1.3 var(--f-body); }
-.gal-track figcaption .mono { display: block; color: var(--accent); margin-bottom: var(--s1); font-weight: 500; }
+.gal-track figure { margin: 0; flex: none; display: flex; flex-direction: column; gap: var(--s2); }
+/* Rasm qirqilmaydi: o'z nisbatida, to'liq ko'rinadi */
+.gal-track .gal-img { height: min(68svh, 700px); aspect-ratio: var(--ar, 3 / 4); border-radius: var(--r-lg); overflow: hidden; background: rgba(255,255,255,.04); }
+.gal-track img { height: 100%; width: 100%; object-fit: contain; user-select: none; display: block; }
+.gal-track figcaption { max-width: 100%; width: 0; min-width: 100%; font: 600 var(--t-16)/1.4 var(--f-body); }
+.gal-track figcaption .mono { display: block; color: var(--accent); margin-bottom: 4px; font-weight: 600; }
 .others { padding: var(--s8) 0 var(--s12); border-top: 1px solid var(--line); position: relative; z-index: 3; }
 .others-list { display: flex; gap: var(--s3); margin-top: var(--s3); overflow-x: auto; padding-bottom: var(--s2); }
 .ocard { flex: none; width: 280px; aspect-ratio: 3/4; border-radius: var(--r-lg); padding: var(--s3); display: flex; flex-direction: column; justify-content: space-between;
@@ -431,9 +430,9 @@ html[lang="ar"] #menu a { line-height: 1.3; }
   .p-row { grid-template-columns: 1fr; gap: var(--s2); padding: var(--s4) 0; }
   .faq details p { padding-inline-end: 0; }
   #order { top: auto; bottom: 0; inset-inline: 0; width: 100%; max-height: 92svh; border-radius: var(--r-lg) var(--r-lg) 0 0; padding: var(--s3) var(--s2) calc(var(--s3) + env(safe-area-inset-bottom)); }
-  .gal-track figure { height: 56svh; }
+  .gal-track .gal-img { height: 52svh; }
   .p-hook { font-size: var(--t-20); }
-  .gal-track figcaption { font-size: var(--t-16); padding: var(--s5) var(--s2) var(--s2); }
+  .gal-track figcaption { font-size: var(--t-14); }
   .ocard { width: 220px; }
   #menu .m-langs { display: flex; }
   /* scroll paytida og'ir — telefonda o'chiq */

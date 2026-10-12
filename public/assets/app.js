@@ -14,8 +14,7 @@ const FALLBACK = [
   { id: "crystal", name: "Crystal Bloom", theme: { bg: "#071A45", bg2: "#030A1E", surface: "#1C55D6", accent: "#7DC2FF", glow: "#2F7BFF" } },
   { id: "original", name: "Original", theme: { bg: "#062A1A", bg2: "#02130B", surface: "#1E8A3E", accent: "#8EE58A", glow: "#2FBF55" } },
 ].map((p) => ({ ...p, img: `assets/img/${p.id}.webp`, atmo: `assets/img/${p.id}-atmo.webp`,
-  gallery: [["studio", null], ["real-front", null], ["real-34", null], ["scent", `prod.${p.id}.g1`], ["real-pod", null], ["room", null], ["real-back", null], ["real-lock", null]]
-    .map(([f, k]) => ({ src: `assets/img/${p.id}-${f}.webp`, cap: k ? CAP(k) : { uz: p.name } })) }));
+  gallery: (p.id === "amethyst" ? ["amethyst-photos-2", "amethyst-photos-1"] : [`${p.id}-photos`]).map((f) => ({ src: `assets/img/${f}.webp`, cap: { uz: p.name } })) }));
 
 async function loadSite() {
   try {
@@ -772,8 +771,13 @@ function renderGallery() {
   const p = PRODUCTS[store.active];
   const shots = (p.gallery || []).map((g) => ({ src: g.src, cap: (g.cap || {})[store.lang] || (g.cap || {}).uz || "" }));
   galTrack.innerHTML = shots.map((s, k) =>
-    `<figure class="${s.wide ? "wide" : ""}"><img src="${s.src}" alt="${esc(s.cap)}" loading="lazy" draggable="false">
+    `<figure><div class="gal-img"><img src="${s.src}" alt="${esc(s.cap)}" loading="${k < 2 ? "eager" : "lazy"}" draggable="false"></div>
        <figcaption><span class="mono">0${k + 1} · ${esc(p.name)}</span>${esc(s.cap)}</figcaption></figure>`).join("");
+  // Har rasm o'z nisbatida — yuklangach haqiqiy o'lchami qo'yiladi
+  $$("img", galTrack).forEach((im) => {
+    const fit = () => { if (im.naturalWidth) { im.parentElement.style.setProperty("--ar", `${im.naturalWidth} / ${im.naturalHeight}`); galGo(gal.i, true); } };
+    im.complete ? fit() : im.addEventListener("load", fit, { once: true });
+  });
   galGo(0, true);
 }
 (() => {

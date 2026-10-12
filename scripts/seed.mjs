@@ -16,21 +16,21 @@ const CAP = {
   back: { uz: "Orqa tomoni: qo‘llash yo‘riqnomasi va tarkib", ru: "Обратная сторона: инструкция и состав", en: "Back of pack: instructions and ingredients", ar: "الجهة الخلفية: التعليمات والمكونات" },
   lock: { uz: "Bolalar ocholmaydigan maxsus qulf (Child-Lock)", ru: "Замок защиты от детей (Child-Lock)", en: "Child-Lock safety seal", ar: "قفل أمان للأطفال (Child-Lock)" },
 };
+const PC = {
+  all: { uz: "Asl suratlar: old, burchakdan, orqa, yon va yaqin plan", ru: "Оригинальные фото: спереди, сбоку, сзади и крупным планом", en: "Original photos: front, angle, back, side and close-ups", ar: "صور أصلية: من الأمام والجانب والخلف وعن قرب" },
+  big: { uz: "Asl suratlar: old, orqa va yon tomondan", ru: "Оригинальные фото: спереди, сзади и сбоку", en: "Original photos: front, back and side", ar: "صور أصلية: من الأمام والخلف والجانب" },
+};
+const PHOTOS = {
+  amethyst: [{ src: "assets/img/amethyst-photos-2.webp", cap: PC.big }, { src: "assets/img/amethyst-photos-1.webp", cap: PC.all }],
+  crystal: [{ src: "assets/img/crystal-photos.webp", cap: PC.all }],
+  original: [{ src: "assets/img/original-photos.webp", cap: PC.all }],
+};
 const q = (s) => "'" + String(s).replace(/'/g, "''") + "'";
 const t = Date.now(); let sql = "DELETE FROM products;\n";
 P.forEach((p, k) => {
   const cap = (key) => Object.fromEntries(L.map((l) => [l, I[l][key] || ""]));
-  // Asosan haqiqiy suratlar (fotosessiya, sifati oshirilgan) + bitta ifor kayfiyati
-  const gallery = [
-    { src: `assets/img/${p.id}-studio.webp`, cap: CAP.studio },
-    { src: `assets/img/${p.id}-real-front.webp`, cap: CAP.front },
-    { src: `assets/img/${p.id}-real-34.webp`, cap: CAP["34"] },
-    { src: `assets/img/${p.id}-scent.webp`, cap: cap(`prod.${p.id}.g1`) },
-    { src: `assets/img/${p.id}-real-pod.webp`, cap: CAP.pod },
-    { src: `assets/img/${p.id}-room.webp`, cap: CAP.room },
-    { src: `assets/img/${p.id}-real-back.webp`, cap: CAP.back },
-    { src: `assets/img/${p.id}-real-lock.webp`, cap: CAP.lock },
-  ];
+  // Faqat brend bergan asl suratlar — o'zgartirishsiz (lossless WebP)
+  const gallery = PHOTOS[p.id];
   const i18n = Object.fromEntries(L.map((l) => [l, Object.fromEntries(["scent", "line", "hook", "desc", "for"].map((f) => [f, I[l][`prod.${p.id}.${f}`] || ""]))]));
   sql += `INSERT INTO products (id, sort, status, name, color, theme, pack, atmo, gallery, i18n, created_at, updated_at) VALUES (${[
     q(p.id), k + 1, q("published"), q(p.name), q(p.color), q(JSON.stringify(p.theme)), q(`assets/img/${p.id}.webp`),
