@@ -72,7 +72,7 @@ const KF = {
   phero: { x: 24, y: 4, scale: 1.05, ry: -10, bob: .6, dark: .15, bub: .3, fl: .7 },
   // Kompyuterda: matn chapda, qadoq o'ng ustunda katta holda qoladi
   pdock: { x: 29, y: 4, scale: .82, ry: -12, bob: .5, dark: .15, bub: .25 },
-  pgone: { x: 29, y: 4, scale: .82, ry: -12, op: 0, bub: .2 },
+  pgone: { x: 29, y: -70, scale: .82, ry: -12, op: 0, bub: .2 }, // sahifa bilan birga yuqoriga chiqib ketadi
 };
 const KF_M = {
   hero:  { y: 4, scale: .9 },
@@ -478,7 +478,8 @@ function buildProductST() {
   const gal = topOf($(".gallery"));
   productTL = gsap.timeline({ paused: true });
   productTL.fromTo(S, kf("phero"), { ...kf("pdock"), duration: vh * .8, ease: EASE_IO, immediateRender: false }, 0);
-  productTL.fromTo(S, kf("pdock"), { ...kf("pgone"), duration: vh * .3, ease: "none", immediateRender: false }, Math.max(vh * .8, gal - vh * .6));
+  // Galereya ekranga kira boshlaganda qadoq matn bilan birga yuqoriga suriladi va so'nadi — galereya ustiga tushmaydi
+  productTL.fromTo(S, kf("pdock"), { ...kf("pgone"), duration: vh * .55, ease: "none", immediateRender: false }, Math.max(vh * .8, gal - vh * 1.05));
   $$(".p-row", productEl).forEach((row) => {
     productTL.fromTo(row, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: vh * .3, ease: EASE_IN }, Math.max(0, topOf(row) - vh * .9));
   });
