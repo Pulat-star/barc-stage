@@ -90,6 +90,7 @@ const kf = (n) => ({ ...BASE, ...KF[n], ...(isMobile ? KF_M[n] : null) });
 
 const S = kf("hero");
 const R = { ...S, scale: .6, y: 20, op: 0 };
+if (/[?&]debug/.test(location.search)) window.__dbg = { S, R, store };
 const slots = PRODUCTS.map((_, i) => rel(i, 0));
 const hoverAmt = PRODUCTS.map(() => 0);
 function rel(j, a) { let d = (j - a + N) % N; if (d > N / 2) d -= N; return d; }
@@ -356,7 +357,7 @@ function renderRange() {
 }
 
 /* ---------------- Master timeline ---------------- */
-let master = null, masterST = null, sectionSTs = [];
+let master = null, masterST = null, sectionSTs = [], stagePts = [];
 const homeEl = $("#home");
 const LABELS = ["hero", "zoom", "b1", "b2", "b3", "b4", "solo", "usage", "range", "faq", "outro", "end"];
 const secOf = { hero: "#s-hero", zoom: "#s-zoom", b1: "#s-b1", b2: "#s-b2", b3: "#s-b3", b4: "#s-b4", solo: "#s-solo", usage: "#s-usage", range: "#s-range", faq: "#s-faq", outro: "#s-outro", end: "#foot" };
@@ -381,10 +382,14 @@ function buildMaster() {
     if (l === "end") pos = Math.min(maxScroll, pos - vh * .4);
     return { l, pos: Math.min(pos, maxScroll) };
   });
+  stagePts = pts;
   pts.forEach((p) => master.addLabel(p.l, p.pos));
   for (let k = 1; k < pts.length; k++) {
     const a = pts[k - 1], b = pts[k];
     const start = Math.max(a.pos, b.pos - vh * .85), dur = Math.max(1, b.pos - start);
+    // Bo'limda turilgan oraliq ham timeline'da bo'lsin: aks holda refresh paytida sahna
+    // oldingi sahifa (mahsulot) holatiga qaytib, shu yerda qotib qoladi.
+    if (start > a.pos) master.fromTo(S, kf(a.l), { ...kf(a.l), duration: start - a.pos, ease: "none", immediateRender: false }, a.pos);
     master.fromTo(S, kf(a.l), { ...kf(b.l), duration: dur, ease: EASE_IO, immediateRender: false }, start);
   }
 
@@ -462,12 +467,22 @@ addEventListener("keydown", (e) => {
 
 /* ---------------- Mahsulot sahifasi ---------------- */
 const productEl = $("#product"), curtain = $("#curtain"), backLink = $("#back-link"), soundBtn = $("#sound");
-let productST = null, productTL = null, transitioning = false;
+let productST = null, productTL = null, transitioning = false, queued = null;
+// O'tish paytida bosilgan navigatsiya yo'qolmaydi — o'tish tugagach bajariladi
+function done() { transitioning = false; const q = queued; queued = null; if (q) q(); }
 
 // Qayta qurilganda scrub butun yo'lni qayta yugurib chiqmasin — joriy nuqtaga sakraydi.
 // Sahna baribir R orqali silliq yetib boradi.
 function snap(tl, st) {
-  st.refresh(); tl.progress(st.progress);
+  st.refresh();
+  // Tweenlar orasidagi bo'shliqda (masalan, hero boshida) timeline sahnaga hech narsa yozmaydi —
+  // sahna avvalgi sahifa holatida qotib qolmasligi uchun joriy nuqtadagi kalit kadr oldindan qo'yiladi.
+  if (tl === master && stagePts.length) {
+    const y = scrollY; let a = stagePts[0];
+    stagePts.forEach((p) => { if (p.pos <= y + 1) a = p; });
+    Object.assign(S, kf(a.l)); // gsap.set emas: parda callback ichida u keyin eski qiymatga qaytariladi
+  }
+  tl.progress(st.progress);
   const tw = st.getTween && st.getTween(); if (tw) tw.progress(1);
 }
 function killProductST() { if (productST) { productST.kill(); productTL.kill(); productST = productTL = null; } }
@@ -479,7 +494,9 @@ function buildProductST() {
   productTL = gsap.timeline({ paused: true });
   productTL.fromTo(S, kf("phero"), { ...kf("pdock"), duration: vh * .8, ease: EASE_IO, immediateRender: false }, 0);
   // Galereya ekranga kira boshlaganda qadoq matn bilan birga yuqoriga suriladi va so'nadi — galereya ustiga tushmaydi
-  productTL.fromTo(S, kf("pdock"), { ...kf("pgone"), duration: vh * .55, ease: "none", immediateRender: false }, Math.max(vh * .8, gal - vh * 1.05));
+  const goneAt = Math.max(vh * .8, gal - vh * 1.05);
+  if (goneAt > vh * .8) productTL.fromTo(S, kf("pdock"), { ...kf("pdock"), duration: goneAt - vh * .8, ease: "none", immediateRender: false }, vh * .8);
+  productTL.fromTo(S, kf("pdock"), { ...kf("pgone"), duration: vh * .55, ease: "none", immediateRender: false }, goneAt);
   $$(".p-row", productEl).forEach((row) => {
     productTL.fromTo(row, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: vh * .3, ease: EASE_IN }, Math.max(0, topOf(row) - vh * .9));
   });
@@ -513,7 +530,7 @@ function curtainSwap(midway) {
 }
 
 async function openProduct(i) {
-  if (transitioning) return;
+  if (transitioning) { queued = () => openProduct(i); return; }
   const same = store.view === "product";
   if (same && i === store.active) return;
   transitioning = true;
@@ -526,7 +543,7 @@ async function openProduct(i) {
     gsap.to(S, { ...kf("phero"), duration: .9, ease: "power3.inOut", overwrite: "auto" });
     titleIn();
     renderOthers();
-    setTimeout(() => { buildProductST(); transitioning = false; }, 950);
+    setTimeout(() => { buildProductST(); done(); }, 950);
     return;
   }
   store.view = "product";
@@ -546,7 +563,7 @@ async function openProduct(i) {
     titleIn();
   });
   buildProductST();
-  transitioning = false;
+  done();
 }
 function titleIn() {
   gsap.fromTo(".pt-line > span", { yPercent: 105 }, { yPercent: 0, duration: .9, ease: EASE_IN, stagger: .08 });
@@ -554,7 +571,7 @@ function titleIn() {
 }
 
 async function goHome(target) {
-  if (transitioning) return;
+  if (transitioning) { queued = () => goHome(target); return; }
   if (store.view === "home") { if (target) scrollTo(target); return; }
   transitioning = true;
   killProductST();
@@ -569,7 +586,7 @@ async function goHome(target) {
     scrollTo(y, true); window.scrollTo(0, y);
     ScrollTrigger.update(); snap(master, masterST);
   });
-  transitioning = false;
+  done();
 }
 
 function route() {
