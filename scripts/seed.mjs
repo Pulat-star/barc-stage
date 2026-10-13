@@ -38,7 +38,7 @@ P.forEach((p, k) => {
   ];
   const i18n = Object.fromEntries(L.map((l) => [l, Object.fromEntries(["scent", "line", "hook", "desc", "for"].map((f) => [f, I[l][`prod.${p.id}.${f}`] || ""]))]));
   sql += `INSERT INTO products (id, sort, status, name, color, theme, pack, atmo, gallery, i18n, created_at, updated_at) VALUES (${[
-    q(p.id), k + 1, q("published"), q(p.name), q(p.color), q(JSON.stringify(p.theme)), q(`assets/img/${p.id}.webp`),
+    q(p.id), k + 1, q("published"), q(p.name), q(p.color), q(JSON.stringify(p.theme)), q(`assets/img/${p.id}.webp?v=2`),
     q(`assets/img/${p.id}-atmo.webp`), q(JSON.stringify(gallery)), q(JSON.stringify(i18n)), t, t].join(", ")});\n`;
 });
 fs.writeFileSync("seed.sql", sql);

@@ -13,7 +13,7 @@ const FALLBACK = [
   { id: "amethyst", name: "Amethyst", theme: { bg: "#1E0A2E", bg2: "#0B0414", surface: "#6A1FA8", accent: "#C58BFF", glow: "#9B3DEB" } },
   { id: "crystal", name: "Crystal Bloom", theme: { bg: "#071A45", bg2: "#030A1E", surface: "#1C55D6", accent: "#7DC2FF", glow: "#2F7BFF" } },
   { id: "original", name: "Original", theme: { bg: "#062A1A", bg2: "#02130B", surface: "#1E8A3E", accent: "#8EE58A", glow: "#2FBF55" } },
-].map((p) => ({ ...p, img: `assets/img/${p.id}.webp`, atmo: `assets/img/${p.id}-atmo.webp`,
+].map((p) => ({ ...p, img: `assets/img/${p.id}.webp?v=2`, atmo: `assets/img/${p.id}-atmo.webp`,
   gallery: [...(p.id === "amethyst" ? ["amethyst-photos-2", "amethyst-photos-1"] : [`${p.id}-photos`]), `${p.id}-studio`, `${p.id}-room`, `${p.id}-scent`]
     .map((f) => ({ src: `assets/img/${f}.webp`, cap: { uz: p.name } })) }));
 
