@@ -33,9 +33,10 @@ const P = [
 ];
 const q = (s) => "'" + String(s).replace(/'/g, "''") + "'";
 const t = Date.now();
+const galOf = (gal) => gal.map(([f, key]) => ({ src: `assets/img/${f}`, cap: cap(key) }));
+const i18nOf = (id) => Object.fromEntries(L.map((l) => [l, Object.fromEntries(["scent", "line", "hook", "desc", "for"].map((f) => [f, I[l][`prod.${id}.${f}`] || ""]))]));
 const row = ([id, name, line, gal], k, verb) => {
-  const gallery = gal.map(([f, key]) => ({ src: `assets/img/${f}`, cap: cap(key) }));
-  const i18n = Object.fromEntries(L.map((l) => [l, Object.fromEntries(["scent", "line", "hook", "desc", "for"].map((f) => [f, I[l][`prod.${id}.${f}`] || ""]))]));
+  const gallery = galOf(gal), i18n = i18nOf(id);
   return `${verb} INTO products (id, sort, status, line, name, color, theme, pack, atmo, gallery, i18n, created_at, updated_at) VALUES (${[
     q(id), k + 1, q("published"), q(line), q(name), q(TH[id][0]), q(JSON.stringify(TH[id][1])), q(`assets/img/${id}.webp?v=${line === "pods" ? 2 : 3}`),
     q(`assets/img/${id}-atmo.webp`), q(JSON.stringify(gallery)), q(JSON.stringify(i18n)), t, t].join(", ")});\n`;
@@ -46,5 +47,9 @@ fs.writeFileSync("seed-family.sql", P.filter((p) => p[2] !== "pods").map((p) => 
   + P.map((p, k) => `UPDATE products SET sort = ${k + 1} WHERE id = ${q(p[0])};\n`).join(""));
 // 2026-10-29: yangi turkumlarning qadoq rasmi (Higgsfield) va galereyasi yangilanadi; matnlarga tegilmaydi
 fs.writeFileSync("update-family.sql", P.filter((p) => p[2] !== "pods").map(([id, , , gal]) =>
-  `UPDATE products SET pack = ${q(`assets/img/${id}.webp?v=3`)}, gallery = ${q(JSON.stringify(gal.map(([f, key]) => ({ src: `assets/img/${f}`, cap: cap(key) }))))}, updated_at = ${t} WHERE id = ${q(id)};\n`).join(""));
-console.log("seed.sql + seed-family.sql + update-family.sql", P.length, "mahsulot");
+  `UPDATE products SET pack = ${q(`assets/img/${id}.webp?v=3`)}, gallery = ${q(JSON.stringify(galOf(gal)))}, updated_at = ${t} WHERE id = ${q(id)};\n`).join(""));
+// 2026-10-29 (keyin): matnlar odam yozgandek qayta yozildi — hamma mahsulotning matni va galereya izohlari yangilanadi.
+// Galereya ro'yxati jonli bazadagi bilan bir xil ekani tekshirilgan; qadoq rasmiga tegilmaydi.
+fs.writeFileSync("update-texts.sql", P.map(([id, , , gal]) =>
+  `UPDATE products SET i18n = ${q(JSON.stringify(i18nOf(id)))}, gallery = ${q(JSON.stringify(galOf(gal)))}, updated_at = ${t} WHERE id = ${q(id)};\n`).join(""));
+console.log("seed.sql + seed-family.sql + update-family.sql + update-texts.sql", P.length, "mahsulot");
