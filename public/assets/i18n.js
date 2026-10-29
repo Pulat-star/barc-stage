@@ -589,7 +589,8 @@ window.I18N = {
       "cap.oxiRoom": "Oq kiyim oppoq, rangli — yorqin",
       "cap.boosterStudio": "Bir qoshiq — haftalab ifor",
       "cap.boosterRoom": "Choyshab va sochiq doim xushbo‘y",
-      "cap.boosterPhoto": "6 xil ifor va 3 xil hajm"
+      "cap.boosterPhoto": "6 xil ifor va 3 xil hajm",
+      "cap.shot": "Qadoq yaqindan — studiya surati"
     },
 
     ru: {
@@ -738,7 +739,8 @@ window.I18N = {
       "cap.oxiRoom": "Белое — белоснежное, цветное — яркое",
       "cap.boosterStudio": "Одна ложка — аромат на недели",
       "cap.boosterRoom": "Постельное и полотенца всегда свежие",
-      "cap.boosterPhoto": "6 ароматов и 3 размера"
+      "cap.boosterPhoto": "6 ароматов и 3 размера",
+      "cap.shot": "Упаковка крупным планом — студийное фото"
     },
 
     en: {
@@ -887,7 +889,8 @@ window.I18N = {
       "cap.oxiRoom": "Whites whiter, colours brighter",
       "cap.boosterStudio": "One scoop, weeks of freshness",
       "cap.boosterRoom": "Linen and towels that stay fresh",
-      "cap.boosterPhoto": "6 scents and 3 sizes"
+      "cap.boosterPhoto": "6 scents and 3 sizes",
+      "cap.shot": "The pack up close — studio shot"
     },
 
     ar: {
@@ -1036,7 +1039,8 @@ window.I18N = {
       "cap.oxiRoom": "الأبيض ناصع والألوان زاهية",
       "cap.boosterStudio": "مغرفة واحدة — انتعاش لأسابيع",
       "cap.boosterRoom": "مفارش ومناشف تبقى منعشة",
-      "cap.boosterPhoto": "6 عطور و3 أحجام"
+      "cap.boosterPhoto": "6 عطور و3 أحجام",
+      "cap.shot": "العبوة عن قرب — صورة استوديو"
     }
   };
   for (const l in ADD) Object.assign(window.I18N[l], ADD[l]);

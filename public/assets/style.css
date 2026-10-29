@@ -224,6 +224,11 @@ html[lang="ar"] .old s { font-family: var(--f-body); letter-spacing: 0; }
 .hero-dots button { width: 44px; height: 24px; display: grid; place-items: center; }
 .hero-dots button::after { content: ""; width: 24px; height: 2px; background: var(--line); transition: background .4s, width .4s; }
 .hero-dots button[aria-selected="true"]::after { background: #fff; width: 40px; }
+/* Karuselda mahsulot ko'p — nuqtalar ixchamroq */
+.hero-dots.is-many { gap: 2px; }
+.hero-dots.is-many button { width: 28px; }
+.hero-dots.is-many button::after { width: 14px; }
+.hero-dots.is-many button[aria-selected="true"]::after { width: 24px; }
 .scroll-cue { position: absolute; inset-inline-end: var(--s5); bottom: var(--s6); color: var(--muted); margin: 0; writing-mode: vertical-rl; }
 
 /* ---------------- 1-ekran: brend va oila qatori ---------------- */
@@ -448,7 +453,7 @@ html[lang="ar"] #menu a { line-height: 1.3; }
   .hero-name { top: 84px; }
   .brand-top { top: 84px; }
   .brand-k { margin-bottom: var(--s1); }
-  .brand-title { font-size: min(10.4vw, 6.2svh, 56px); }
+  .brand-title { font-size: min(9.2vw, 6.2svh, 56px); }
   .bhit-label { max-width: 24vw; top: calc(100% + var(--s1)); }
   .bhit-label .mono { display: none; }
   .bhit-label b { font-size: var(--t-14); }
@@ -474,6 +479,10 @@ html[lang="ar"] #menu a { line-height: 1.3; }
   .hero-line { font-size: var(--t-16); max-width: 28ch; }
   .hero-bar { bottom: var(--s3); grid-template-columns: 1fr auto; }
   .hero-bar p:first-child { display: none; }
+  .hero-dots.is-many { gap: 0; }
+  .hero-dots.is-many button { width: 20px; }
+  .hero-dots.is-many button::after { width: 10px; }
+  .hero-dots.is-many button[aria-selected="true"]::after { width: 18px; }
   .scroll-cue { display: none; }
   #bnav { inset-inline-end: var(--s2); top: 96px; translate: none; grid-auto-flow: column; gap: var(--s1); }
   #bnav button { width: 40px; height: 40px; }

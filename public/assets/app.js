@@ -22,8 +22,8 @@ const TH = {
   booster: { bg: "#2B0F33", bg2: "#120515", surface: "#8A3E9E", accent: "#F0B6F0", glow: "#C764D8" },
 };
 const POD_GAL = (id, photos) => [...photos, [`${id}-studio.webp`, "cap.podStudio"], [`${id}-room.webp`, "cap.podRoom"], [`${id}-scent.webp`, `prod.${id}.g1`]];
-const GEL_GAL = (id) => [[`${id}-studio.webp`, "cap.gelStudio"], ["gel-room.webp", "cap.gelRoom"], ["gel-photo.jpg", "cap.gelPhoto"]];
-const POW_GAL = (id) => [[`${id}-studio.webp`, "cap.powderStudio"], ["powder-room.webp", "cap.powderRoom"], ["powder-photo.jpg", "cap.powderPhoto"]];
+const GEL_GAL = (id) => [[`${id}-studio.webp?v=2`, "cap.gelStudio"], [`${id}-shot.webp`, "cap.shot"], ["gel-room.webp?v=2", "cap.gelRoom"], ["gel-photo.jpg", "cap.gelPhoto"]];
+const POW_GAL = (id) => [[`${id}-studio.webp?v=2`, "cap.powderStudio"], [`${id}-shot.webp`, "cap.shot"], ["powder-room.webp?v=2", "cap.powderRoom"], ["powder-photo.jpg", "cap.powderPhoto"]];
 const FALLBACK = [
   ["amethyst", "Amethyst", "pods", POD_GAL("amethyst", [["amethyst-photos-2.webp", "cap.photosBig"], ["amethyst-photos-1.webp", "cap.photos"]])],
   ["crystal", "Crystal Bloom", "pods", POD_GAL("crystal", [["crystal-photos.webp", "cap.photos"]])],
@@ -34,9 +34,9 @@ const FALLBACK = [
   ["powder-ocean", "Ocean Fresh", "powder", POW_GAL("powder-ocean")],
   ["powder-purple", "Purple Splash", "powder", POW_GAL("powder-purple")],
   ["oxi", "OXI Power", "oxi", [["oxi-photo-front.webp", "cap.oxiFront"], ["oxi-photo-back-1.webp", "cap.oxiBack"], ["oxi-photo-back-2.webp", "cap.oxiBack"],
-    ["oxi-photo-back-3.webp", "cap.oxiBack30"], ["oxi-studio.webp", "cap.oxiStudio"], ["oxi-room.webp", "cap.oxiRoom"]]],
-  ["booster", "Endless Scent", "booster", [["booster-studio.webp", "cap.boosterStudio"], ["booster-room.webp", "cap.boosterRoom"], ["booster-photo.jpg", "cap.boosterPhoto"]]],
-].map(([id, name, line, gal]) => ({ id, name, line, theme: TH[id], img: `assets/img/${id}.webp?v=2`, atmo: `assets/img/${id}-atmo.webp`,
+    ["oxi-photo-back-3.webp", "cap.oxiBack30"], ["oxi-shot.webp", "cap.shot"], ["oxi-studio.webp?v=2", "cap.oxiStudio"], ["oxi-room.webp?v=2", "cap.oxiRoom"]]],
+  ["booster", "Endless Scent", "booster", [["booster-studio.webp?v=2", "cap.boosterStudio"], ["booster-shot.webp", "cap.shot"], ["booster-room.webp?v=2", "cap.boosterRoom"], ["booster-photo.jpg", "cap.boosterPhoto"]]],
+].map(([id, name, line, gal]) => ({ id, name, line, theme: TH[id], img: `assets/img/${id}.webp?v=${line === "pods" ? 2 : 3}`, atmo: `assets/img/${id}-atmo.webp`,
   gallery: gal.map(([f, k]) => ({ src: `assets/img/${f}`, cap: CAP(k) })) }));
 
 async function loadSite() {
@@ -72,23 +72,28 @@ const mq = matchMedia("(max-width: 860px)");
 let isMobile = mq.matches;
 
 /* ---------------- Turkumlar ----------------
-   Kapsulalar (pods) — bosh karusel va iforlar qatori. Qolgan turkumlar — brend qatorida va o'z bloklarida. */
+   Bosh karusel — barcha mahsulotlar (kapsuladan ifor kuchaytirgichgacha). Iforlar qatori va kapsula
+   hikoyasi — faqat kapsulalar. Qolgan turkumlar brend qatorida va o'z bloklarida ham turadi. */
 const LINE_ORDER = ["pods", "gel", "powder", "oxi", "booster"];
 const LINE_SEAT = ["booster", "gel", "pods", "powder", "oxi"]; // brend qatorida chapdan o'ngga
 const lineIdx = (l) => PRODUCTS.map((p, i) => (p.line === l ? i : -1)).filter((i) => i >= 0);
-let CAR = lineIdx("pods"); if (!CAR.length) CAR = PRODUCTS.map((_, i) => i);
+let POD = lineIdx("pods"); if (!POD.length) POD = PRODUCTS.map((_, i) => i);
+const P = POD.length;
+const podIdx = (i) => POD.indexOf(i);
+const isPod = (i) => podIdx(i) >= 0;
+const CAR = PRODUCTS.map((_, i) => i);
 const C = CAR.length;
 const carIdx = (i) => CAR.indexOf(i);
-const LINES = C === N ? [] : LINE_ORDER.filter((l) => l !== "pods" && lineIdx(l).length);
+const LINES = P === N ? [] : LINE_ORDER.filter((l) => l !== "pods" && lineIdx(l).length);
 const FAM = LINE_SEAT.filter((l) => lineIdx(l).length);
 const REP_PREF = { gel: "gel-original", powder: "powder-ocean" };
 const OFF = 6; // karuseldan tashqari — ko'rinmaydi
 const pad2 = (n) => String(n).padStart(2, "0");
 
 /* ---------------- Store ---------------- */
-const store = { active: CAR[0], car: CAR[0], theme: CAR[0], section: "brand", lang: "uz", soundOn: false, view: "home", hover: -1, loaded: false, variant: {} };
+const store = { active: POD[0], car: POD[0], pod: POD[0], theme: POD[0], section: "brand", lang: "uz", soundOn: false, view: "home", hover: -1, loaded: false, variant: {} };
 function lineLead(l) {
-  if (l === "pods") return CAR.includes(store.car) ? store.car : CAR[0];
+  if (l === "pods") return isPod(store.pod) ? store.pod : POD[0];
   const ids = lineIdx(l), pref = PRODUCTS.findIndex((p) => p.id === REP_PREF[l]);
   return ids.includes(pref) ? pref : ids[0];
 }
@@ -193,14 +198,16 @@ function slotTarget(j, a) {
   const cj = carIdx(j); if (cj < 0) return OFF;
   let d = (cj - ca + C) % C; if (d > C / 2) d -= C; return d;
 }
-const slots = PRODUCTS.map((_, i) => slotTarget(i, CAR[0]));
+const slots = PRODUCTS.map((_, i) => slotTarget(i, POD[0]));
 const hoverAmt = PRODUCTS.map(() => 0);
 const wasVis = PRODUCTS.map(() => true);
 const hK = PRODUCTS.map(() => 1), wK = PRODUCTS.map(() => 1); // qadoqning ko'rinadigan bo'yi/eni (.prod qutisiga nisbatan)
 const stepCar = (dlt) => CAR[(carIdx(store.car) + dlt + C) % C];
-// Qatorda (range) mahsulotlar ko'p bo'lsa — oraliq va o'lcham moslashadi
-const rowGap = () => isMobile ? Math.min(31, 76 / Math.max(1, C - 1)) : Math.min(28, 72 / Math.max(1, C - 1));
-const rowK = C <= 3 ? 1 : 3 / C;
+// Qatorda (range, faqat kapsulalar) mahsulotlar ko'p bo'lsa — oraliq va o'lcham moslashadi
+const rowGap = () => isMobile ? Math.min(31, 76 / Math.max(1, P - 1)) : Math.min(28, 72 / Math.max(1, P - 1));
+const rowK = P <= 3 ? 1 : 3 / P;
+// Karuseldagi katta nom: kapsula bilan bir xil nomli gel «GEL AMETHYST» bo'lib chiqadi
+const heroName = (p) => { const pre = p.line === "pods" ? "" : (t(`line.${p.line}.top`) || "").replace(/^BÄRC\s*/i, ""); return (pre ? pre + " " : "") + p.name; };
 
 /* ---------------- Render (har kadr) ---------------- */
 (() => {
@@ -210,6 +217,7 @@ const rowK = C <= 3 ? 1 : 3 / C;
     stage.insertAdjacentHTML("beforeend", `<i class="floor-shadow"></i>`);
     stage.insertAdjacentHTML("beforeend", `<div class="prod" data-i="${i}"><img src="${p.img}" alt="" draggable="false"></div>`);
   });
+  dots.classList.toggle("is-many", C > 5);
   dots.innerHTML = CAR.map((i) => `<button type="button" role="tab" data-go="${i}" aria-label="${PRODUCTS[i].name.replace(/"/g, "")}" data-cursor></button>`).join("");
   // Kontaktlar (admin → Sozlamalar)
   const c = SITE.contacts, links = [];
@@ -248,14 +256,14 @@ function render() {
   const w = Math.max(R.fam, R.set), useFam = R.fam >= R.set;
   prodEls.forEach((el, i) => {
     // Karuselda — faol mahsulotga nisbatan; qatorda — o'z tartibi bo'yicha, markazdan teng
-    const ci = carIdx(i);
-    const o = lerp(slots[i], ci >= 0 ? ci - (C - 1) / 2 : OFF, R.row), ao = Math.abs(o), c = clamp(1 - ao, 0, 1);
+    const pi = podIdx(i);
+    const o = lerp(slots[i], pi >= 0 ? pi - (P - 1) / 2 : OFF, R.row), ao = Math.abs(o), c = clamp(1 - ao, 0, 1);
     hoverAmt[i] = lerp(hoverAmt[i], store.hover === i ? 1 : 0, k);
     const bob = reduced ? 0 : Math.sin(t * 1.1 + i * 1.7) * 10 * R.bob;
     let X = d * (R.x * c + o * gap) * vw;
     let yB = (R.y * lerp(1, c, R.row) + o * R.row * -4) * vh; // karuselda yon qadoqlar ham markaz bilan bir chiziqda
     let sc = lerp(sideS, R.scale, c) * (1 + hoverAmt[i] * .07) * lerp(1, rowK, R.row);
-    let op = lerp(sideOp, 1, c) * R.op * lerp(clamp(2 - ao, 0, 1), clamp(C / 2 + .6 - ao, 0, 1), R.row);
+    let op = lerp(sideOp, 1, c) * R.op * lerp(clamp(2 - ao, 0, 1), clamp(P / 2 + .6 - ao, 0, 1), R.row);
     let blur = lerp(sideBlur, 0, c);
     let rz = d * (R.rz * c + o * R.row * 3), ry = d * R.ry * c, z = 10 - Math.round(Math.min(ao, 3) * 3);
     // Brend qatori yoki turkum bloki: har qadoq o'z joyida, pastki cheti bitta polda
@@ -407,16 +415,17 @@ function themeTransition(i, instant) {
 function hexRgb(h) { const n = parseInt(h.slice(1), 16); return { r: n >> 16, g: (n >> 8) & 255, b: n & 255 }; }
 
 /* ---------------- Faol mahsulot ---------------- */
-const heroName = $("#hero-name");
+const heroNameEl = $("#hero-name");
 function setActive(i, opts = {}) {
   i = ((i % N) + N) % N;
   const prev = store.active;
   if (i === prev && !opts.force) return;
   store.active = i;
   // Kapsula ↔ boshqa turkum: karusel o'rinlari sakrab almashadi (sahnada baribir ko'rinmaydi)
-  const cross = carIdx(prev) < 0 || carIdx(i) < 0;
-  const carChanged = carIdx(i) >= 0 && i !== store.car;
-  if (carIdx(i) >= 0) store.car = i;
+  const cross = carIdx(prev) < 0 || carIdx(i) < 0 || opts.snap;
+  const carChanged = i !== store.car;
+  store.car = i;
+  if (isPod(i)) store.pod = i;
   PRODUCTS.forEach((_, j) => {
     const from = slots[j], to = slotTarget(j, i);
     gsap.killTweensOf(slots, String(j));
@@ -432,7 +441,7 @@ function setActive(i, opts = {}) {
     }
   });
   themeTransition(i, opts.instant);
-  if (carChanged || opts.force) { updateHeroText(!opts.instant); FAMP = famLayout(); renderBrand(); }
+  if (carChanged || opts.force) { updateHeroText(!opts.instant && !opts.snap); FAMP = famLayout(); renderBrand(); }
   updateProductText();
   renderRange();
   tick();
@@ -446,19 +455,21 @@ const variantOf = (p) => { const v = packsOf(p); return v[clamp(store.variant[p.
 function updateHeroText(animate) {
   const p = PRODUCTS[store.car];
   const swap = () => {
-    heroName.textContent = p.name.toUpperCase();
-    heroName.parentElement.style.fontSize = `${Math.min(21, 90 / (p.name.length * .56)).toFixed(2)}vw`;
+    const nm = heroName(p);
+    heroNameEl.textContent = nm.toUpperCase();
+    heroNameEl.parentElement.style.fontSize = `${Math.min(21, 90 / (nm.length * .56)).toFixed(2)}vw`;
   };
   if (animate && !reduced) {
     gsap.timeline()
-      .to(heroName, { yPercent: -40, opacity: 0, duration: .3, ease: "power2.in" })
+      .to(heroNameEl, { yPercent: -40, opacity: 0, duration: .3, ease: "power2.in" })
       .add(swap)
-      .fromTo(heroName, { yPercent: 40, opacity: 0 }, { yPercent: 0, opacity: 1, duration: .55, ease: EASE_IN });
+      .fromTo(heroNameEl, { yPercent: 40, opacity: 0 }, { yPercent: 0, opacity: 1, duration: .55, ease: EASE_IN });
   } else swap();
   $("#hero-line").textContent = t(`prod.${p.id}.line`);
-  $("#peek-prev").textContent = PRODUCTS[stepCar(-1)].name;
-  $("#peek-next").textContent = PRODUCTS[stepCar(1)].name;
+  $("#peek-prev").textContent = heroName(PRODUCTS[stepCar(-1)]);
+  $("#peek-next").textContent = heroName(PRODUCTS[stepCar(1)]);
   $("#hero-idx").textContent = `${pad2(carIdx(store.car) + 1)} / ${pad2(C)}`;
+  $("#hero-kick").textContent = p.line === "pods" ? t("hero.kicker") : [t(`line.${p.line}.short`), lt(p.line, "meta")].filter(Boolean).join(" · ");
   $$(".hero-dots [data-go]").forEach((b) => b.setAttribute("aria-selected", String(+b.dataset.go === store.car)));
 }
 function updateProductText() {
@@ -495,7 +506,7 @@ const rangeHits = $("#range-hits");
 function renderRange() {
   if (!rangeHits) return;
   if (!rangeHits.children.length) {
-    rangeHits.innerHTML = CAR.map((j) =>
+    rangeHits.innerHTML = POD.map((j) =>
       `<a class="rhit" href="#/${PRODUCTS[j].id}" data-j="${j}" data-cursor><span class="rhit-label"><span class="rhit-name">${PRODUCTS[j].name}</span><span class="rhit-more mono"></span></span></a>`).join("");
     $$(".rhit", rangeHits).forEach((a) => {
       const j = +a.dataset.j;
@@ -508,7 +519,7 @@ function renderRange() {
   }
   const gap = rowGap();
   $$(".rhit", rangeHits).forEach((a) => {
-    const o = carIdx(+a.dataset.j) - (C - 1) / 2;
+    const o = podIdx(+a.dataset.j) - (P - 1) / 2;
     a.style.left = `calc(50% + ${dirSign() * o * gap}vw)`;
     a.style.top = `calc(50% + ${o * -4}vh)`;
     $(".rhit-more", a).textContent = t("range.more") + " →";
@@ -546,8 +557,17 @@ if (bhits) {
   bhits.addEventListener("pointerleave", () => { store.hover = -1; themeTransition(sectionTheme()); });
   bhits.addEventListener("click", (e) => {
     const a = e.target.closest('.bhit[data-line="pods"]'); if (!a) return;
-    e.preventDefault(); store.hover = -1; scrollTo(topOf($("#s-hero")));
+    e.preventDefault(); store.hover = -1; toPods();
   });
+}
+// «Kapsula» va «Pastga — kapsulalardan boshlaymiz»: karusel oxirgi tanlangan kapsulada ochiladi
+function toPods() {
+  if (!isPod(store.active)) setActive(store.pod);
+  scrollTo(topOf($("#s-hero")));
+}
+{
+  const bs = $(".brand-scroll");
+  if (bs) bs.addEventListener("click", (e) => { e.preventDefault(); toPods(); });
 }
 
 const linesBox = $("#lines");
@@ -588,6 +608,7 @@ function renderLineChips() {
     el.innerHTML = v.map((x) => `<span>${esc(x)}</span>`).join("");
   });
 }
+const POD_SECS = ["zoom", "b1", "b2", "b3", "b4", "solo", "usage", "range"];
 // Bo'limga mos mavzu: turkum blokida — o'sha turkum, boshqa joyda — faol mahsulot
 const sectionTheme = () => (store.view === "home" && store.section.startsWith("line-") ? lineLead(store.section.slice(5)) : store.active);
 
@@ -684,6 +705,8 @@ function setSection(label) {
   $$("button", bnav).forEach((b, i) => b.classList.toggle("is-active", i === bi));
   if (store.view !== "home") return;
   if (label.startsWith("line-")) applyLineLayout(label.slice(5));
+  // «Nega kapsula?» … «Iforlar» — kapsula hikoyasi: karuselda boshqa mahsulot tanlangan bo'lsa, oxirgi kapsulaga qaytadi
+  if (POD_SECS.includes(label) && !isPod(store.active)) { R.op = 0; setActive(store.pod, { snap: true }); }
   if (store.hover < 0) themeTransition(sectionTheme());
 }
 $$("button", bnav).forEach((b, i) => b.addEventListener("click", () => scrollTo(topOf($(`#s-b${i + 1}`)))));
@@ -1300,11 +1323,11 @@ async function boot() {
   const nav = (navigator.language || "uz").slice(0, 2);
   applyLang(saved || (LANGS.includes(nav) ? nav : "uz"));
   sizeCanvas();
-  setActive(CAR[0], { instant: true, force: true });
+  setActive(POD[0], { instant: true, force: true });
 
   const pctEl = $("#loader-pct"), shown = { v: 0 };
   // Birinchi ekranda ko'rinadiganlar kutiladi, qolganlari fonda yuklanadi
-  const assets = [...new Set([...CAR, ...FAM.map(lineLead)])].map((i) => PRODUCTS[i].img);
+  const assets = [...new Set([...POD, ...FAM.map(lineLead)])].map((i) => PRODUCTS[i].img);
   let done = 0; const total = assets.length + 1;
   const bump = () => { done++; gsap.to(shown, { v: done / total * 100, duration: .6, ease: "power2.out", overwrite: true }); };
   const strokeTo = gsap.quickTo(".ll-stroke", "strokeDashoffset", { duration: .6, ease: "power2.out" });
