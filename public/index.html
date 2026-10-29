@@ -3,24 +3,31 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>BÄRC — kir yuvish endi bitta harakat</title>
-<meta name="description" content="BÄRC 3in1 PODS: bitta podda tozalash, ifor va mato himoyasi. Sovuq suvda ham samarali.">
+<title>BÄRC — kuchli natija va ehtiyotkor parvarish</title>
+<meta name="description" content="BÄRC kir yuvish vositalari: 3 in 1 kapsula, suyuq gel, Max Power kukuni, OXI Power dog‘ ketkazgich va Endless Scent ifor kuchaytirgich.">
 <meta name="theme-color" content="#1E0A2E">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
 <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
 <link rel="manifest" href="site.webmanifest">
-<meta property="og:title" content="BÄRC — 3in1 PODS">
+<meta property="og:title" content="BÄRC — kuchli natija va ehtiyotkor parvarish">
 <meta property="og:image" content="https://barc-stage.pages.dev/assets/img/crystal-photos.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Inter:wght@400;500;600&family=Cairo:wght@500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/style.css?v=22">
+<link rel="stylesheet" href="assets/style.css?v=24">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"ItemList","itemListElement":[
 {"@type":"Product","position":1,"name":"BÄRC 3in1 PODS Amethyst","brand":{"@type":"Brand","name":"BÄRC"},"image":"assets/img/amethyst.webp"},
 {"@type":"Product","position":2,"name":"BÄRC 3in1 PODS Crystal Bloom","brand":{"@type":"Brand","name":"BÄRC"},"image":"assets/img/crystal.webp"},
-{"@type":"Product","position":3,"name":"BÄRC 3in1 PODS Original","brand":{"@type":"Brand","name":"BÄRC"},"image":"assets/img/original.webp"}]}
+{"@type":"Product","position":3,"name":"BÄRC 3in1 PODS Original","brand":{"@type":"Brand","name":"BÄRC"},"image":"assets/img/original.webp"},
+{"@type":"Product","position":4,"name":"BÄRC 3-in-1 Liquid Gel Amethyst","brand":{"@type":"Brand","name":"BÄRC"},"image":"assets/img/gel-amethyst.webp"},
+{"@type":"Product","position":5,"name":"BÄRC 3-in-1 Liquid Gel Crystal Bloom","brand":{"@type":"Brand","name":"BÄRC"},"image":"assets/img/gel-crystal.webp"},
+{"@type":"Product","position":6,"name":"BÄRC 3-in-1 Liquid Gel Original","brand":{"@type":"Brand","name":"BÄRC"},"image":"assets/img/gel-original.webp"},
+{"@type":"Product","position":7,"name":"BÄRC Max Power Ocean Fresh 10 kg","brand":{"@type":"Brand","name":"BÄRC"},"image":"assets/img/powder-ocean.webp"},
+{"@type":"Product","position":8,"name":"BÄRC Max Power Purple Splash 10 kg","brand":{"@type":"Brand","name":"BÄRC"},"image":"assets/img/powder-purple.webp"},
+{"@type":"Product","position":9,"name":"BÄRC OXI Power","brand":{"@type":"Brand","name":"BÄRC"},"image":"assets/img/oxi.webp"},
+{"@type":"Product","position":10,"name":"BÄRC Endless Scent Scent Booster","brand":{"@type":"Brand","name":"BÄRC"},"image":"assets/img/booster.webp"}]}
 </script>
 </head>
 <body class="is-loading">
@@ -90,8 +97,26 @@
 <!-- ============ BOSH SAHIFA ============ -->
 <main id="home">
 
+  <!-- 1-ekran: brend va butun oila -->
+  <section class="sec fam-hero" id="s-brand" data-label="brand">
+    <div class="brand-top brand-fade">
+      <p class="mono kicker brand-k" data-i18n="brand.k">Kir yuvish vositalari oilasi</p>
+      <h1 class="display brand-title" data-split data-i18n="brand.t">BÄRC — kuchli natija|va ehtiyotkor parvarish</h1>
+    </div>
+    <div class="bhits" id="brand-hits"></div>
+    <div class="brand-foot brand-fade">
+      <p class="brand-offer" data-i18n="brand.p"></p>
+      <div class="hero-bar brand-bar">
+        <p class="mono" id="brand-count"></p>
+        <a class="mono brand-scroll" href="#s-hero" data-cursor><span data-i18n="brand.scroll"></span> <span aria-hidden="true">↓</span></a>
+        <p class="mono brand-hint" data-i18n="brand.hint"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2-ekran: kapsulalar karuseli -->
   <section class="sec hero" id="s-hero" data-label="hero">
-    <h1 class="hero-name display" aria-live="polite"><span class="hn-inner" id="hero-name">AMETHYST</span></h1>
+    <h2 class="hero-name display" aria-live="polite"><span class="hn-inner" id="hero-name">AMETHYST</span></h2>
 
     <button class="peek peek-prev" type="button" data-prev data-cursor>
       <span class="peek-in">
@@ -197,6 +222,9 @@
     </div>
   </section>
 
+  <!-- BÄRC oilasi: gel, kukun, OXI, ifor kuchaytirgich — app.js to'ldiradi -->
+  <div id="lines"></div>
+
   <section class="sec faq" id="s-faq" data-label="faq">
     <div class="faq-head">
       <p class="mono kicker" data-i18n="faq.k"></p>
@@ -224,10 +252,10 @@
 <!-- ============ MAHSULOT SAHIFASI ============ -->
 <main id="product" hidden>
   <section class="p-hero">
-    <h1 class="p-title display"><span class="pt-line"><span>BÄRC</span></span><span class="pt-line"><span id="p-name">AMETHYST</span></span></h1>
+    <h1 class="p-title display"><span class="pt-line"><span id="p-top">BÄRC</span></span><span class="pt-line"><span id="p-name">AMETHYST</span></span></h1>
     <div class="p-chips">
-      <span class="tag" data-i18n="p.cat">3in1 PODS</span>
-      <span class="mono" data-i18n="p.meta">60 TA KAPSULA · BOLALARDAN QULF</span>
+      <span class="tag" id="p-cat">3in1 PODS</span>
+      <span class="mono" id="p-meta">60 TA KAPSULA · BOLALARDAN QULF</span>
     </div>
     <p class="p-scent mono" id="p-scent"></p>
     <p class="p-hook" id="p-hook"></p>
@@ -235,7 +263,7 @@
 
   <div class="p-body">
     <section class="p-row">
-      <h2 class="p-h mono" data-i18n="p.desc"></h2>
+      <h2 class="p-h mono" id="p-desc-h"></h2>
       <p class="p-lead" id="p-desc"></p>
     </section>
 
@@ -245,34 +273,30 @@
     </section>
 
     <section class="p-row">
-      <h2 class="p-h mono" data-i18n="p.three"></h2>
+      <h2 class="p-h mono" id="p-three-h"></h2>
       <ul class="p-three">
-        <li><b data-i18n="p.t1"></b><span data-i18n="p.t1p"></span></li>
-        <li><b data-i18n="p.t2"></b><span data-i18n="p.t2p"></span></li>
-        <li><b data-i18n="p.t3"></b><span data-i18n="p.t3p"></span></li>
+        <li><b id="p-t1"></b><span id="p-t1p"></span></li>
+        <li><b id="p-t2"></b><span id="p-t2p"></span></li>
+        <li><b id="p-t3"></b><span id="p-t3p"></span></li>
       </ul>
     </section>
 
     <section class="p-row">
       <h2 class="p-h mono" data-i18n="p.use"></h2>
-      <ol class="p-steps">
-        <li data-i18n="usage.s1"></li><li data-i18n="usage.s2"></li><li data-i18n="usage.s3"></li>
-      </ol>
+      <ol class="p-steps" id="p-steps"></ol>
     </section>
 
     <section class="p-row">
       <h2 class="p-h mono" data-i18n="p.safety"></h2>
-      <ul class="p-safety">
-        <li data-i18n="p.s1"></li><li data-i18n="p.s2"></li><li data-i18n="p.s3"></li><li data-i18n="p.s4"></li>
-      </ul>
+      <ul class="p-safety" id="p-safety"></ul>
     </section>
 
     <section class="p-row">
       <h2 class="p-h mono" data-i18n="p.pack"></h2>
       <div>
-        <div class="pills"><button type="button" class="pill is-on" aria-pressed="true" data-cursor data-i18n="p.packV">60 ta kapsula</button></div>
+        <div class="pills" id="p-pills"></div>
         <p class="p-price" data-i18n="p.price"></p>
-        <button class="btn btn-gold btn-lg" type="button" data-order="product" data-cursor><span data-i18n="p.orderThis"></span></button>
+        <button class="btn btn-gold btn-lg" type="button" data-order="product" data-cursor><span id="p-order-t"></span></button>
       </div>
     </section>
   </div>
@@ -308,10 +332,11 @@
 <!-- MENYU -->
 <div id="menu" hidden>
   <nav aria-label="Menyu">
-    <a href="#s-hero" data-cursor><span data-i18n="menu.home"></span></a>
+    <a href="#s-brand" data-cursor><span data-i18n="menu.home"></span></a>
+    <a href="#s-hero" data-cursor><span data-i18n="menu.pods"></span></a>
     <a href="#s-b1" data-cursor><span data-i18n="menu.benefits"></span></a>
-    <a href="#s-usage" data-cursor><span data-i18n="menu.usage"></span></a>
     <a href="#s-range" data-cursor><span data-i18n="menu.range"></span></a>
+    <a href="#lines" data-family data-cursor><span data-i18n="menu.family"></span></a>
     <a href="#s-faq" data-cursor><span data-i18n="menu.faq"></span></a>
     <a href="#order" data-order data-cursor><span data-i18n="menu.order"></span></a>
   </nav>
@@ -377,7 +402,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
-<script src="assets/i18n.js?v=22"></script>
-<script src="assets/app.js?v=22"></script>
+<script src="assets/i18n.js?v=24"></script>
+<script src="assets/app.js?v=24"></script>
 </body>
 </html>

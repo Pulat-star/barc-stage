@@ -163,8 +163,8 @@ async function route(path, method, request, env) {
     if (await db.prepare("SELECT 1 FROM products WHERE id = ?").bind(p.id).first()) return bad("slug_taken");
     const { s } = await db.prepare("SELECT COALESCE(MAX(sort), 0) + 1 s FROM products").first();
     const t = now();
-    await db.prepare("INSERT INTO products (id, sort, status, name, color, theme, pack, atmo, gallery, i18n, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)")
-      .bind(p.id, s, p.status, p.name, p.color, p.theme, p.pack, p.atmo, p.gallery, p.i18n, t, t).run();
+    await db.prepare("INSERT INTO products (id, sort, status, line, name, color, theme, pack, atmo, gallery, i18n, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)")
+      .bind(p.id, s, p.status, p.line, p.name, p.color, p.theme, p.pack, p.atmo, p.gallery, p.i18n, t, t).run();
     return json({ ok: true, id: p.id });
   }
   if (path === "/products/reorder" && method === "POST") {
@@ -182,8 +182,8 @@ async function route(path, method, request, env) {
     if (method === "PUT") {
       const p = cleanProduct({ ...(await readJSON(request)), id });
       if (p.error) return bad(p.error);
-      const r = await db.prepare("UPDATE products SET status=?, name=?, color=?, theme=?, pack=?, atmo=?, gallery=?, i18n=?, updated_at=? WHERE id = ?")
-        .bind(p.status, p.name, p.color, p.theme, p.pack, p.atmo, p.gallery, p.i18n, now(), id).run();
+      const r = await db.prepare("UPDATE products SET status=?, line=?, name=?, color=?, theme=?, pack=?, atmo=?, gallery=?, i18n=?, updated_at=? WHERE id = ?")
+        .bind(p.status, p.line, p.name, p.color, p.theme, p.pack, p.atmo, p.gallery, p.i18n, now(), id).run();
       return r.meta.changes ? json({ ok: true }) : bad("not_found", 404);
     }
     if (method === "DELETE") {
@@ -299,7 +299,8 @@ function orderFilter(url) {
   return { where: w.length ? "WHERE " + w.join(" AND ") : "", args };
 }
 const HEX = /^#[0-9a-f]{6}$/i;
-const URLISH = /^(\/media\/[a-z0-9]+\.\w+|assets\/img\/[\w.-]+)$/;
+const URLISH = /^(\/media\/[a-z0-9]+\.\w+|assets\/img\/[\w.-]+(\?v=\d+)?)$/;
+const LINES = ["pods", "gel", "powder", "oxi", "booster"];
 function cleanProduct(b) {
   const id = String(b.id || "").toLowerCase().trim();
   if (!/^[a-z0-9-]{2,40}$/.test(id)) return { error: "slug" };
@@ -316,7 +317,7 @@ function cleanProduct(b) {
   const i18n = Object.fromEntries(LANGS.map((l) => [l, Object.fromEntries(fields.map((f) => [f, String(((b.i18n || {})[l] || {})[f] || "").slice(0, 800)]))]));
   if (!i18n.uz.scent || !i18n.uz.line) return { error: "uz_text" };
   return {
-    id, name, status: b.status === "draft" ? "draft" : "published", color: b.color,
+    id, name, status: b.status === "draft" ? "draft" : "published", color: b.color, line: LINES.includes(b.line) ? b.line : "pods",
     theme: JSON.stringify(th), pack: b.pack, atmo: URLISH.test(b.atmo || "") ? b.atmo : "",
     gallery: JSON.stringify(gallery), i18n: JSON.stringify(i18n),
   };

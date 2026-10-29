@@ -477,18 +477,20 @@ async function manualOrder() {
 /* =====================================================================
    MAHSULOTLAR
    ===================================================================== */
+const LINE_OPTS = [["pods", "Kapsula (3 in 1)"], ["gel", "Suyuq gel"], ["powder", "Kir yuvish kukuni"], ["oxi", "OXI — kislorodli dog‘ ketkazgich"], ["booster", "Ifor kuchaytirgich"]];
+const lineName = (v) => (LINE_OPTS.find(([k]) => k === v) || LINE_OPTS[0])[1];
 async function viewProducts(view) {
   state.products = (await api("/products")).items;
   const list = state.products;
   view.innerHTML = `
-  <div class="page-head"><div><h1>Mahsulotlar</h1><p>Saytdagi iforlar. Tartibi — saytdagi karusel va qatordagi tartib.</p></div>
+  <div class="page-head"><div><h1>Mahsulotlar</h1><p>Saytdagi mahsulotlar. Tartibi — saytdagi tartib: kapsulalar karuselda, qolganlari o‘z turkum blokida.</p></div>
     <div class="actions"><a class="btn btn-primary" href="#/products/new">${I.plus}Yangi mahsulot</a></div></div>
   <div class="grid prod-grid">
     ${list.map((p, i) => `
       <article class="card pcard">
         <div class="pcard-img" style="--c:linear-gradient(180deg,${p.theme.bg},${p.theme.bg2})"><img src="/${p.pack.replace(/^\//, "")}" alt="">
           <span class="st ${p.status === "published" ? "st-delivered" : "st-cancelled"}">${p.status === "published" ? "Saytda" : "Qoralama"}</span></div>
-        <div class="pcard-body"><h3>${esc(p.name)}</h3><span class="muted">${esc(p.i18n?.uz?.scent || "")}</span>
+        <div class="pcard-body"><h3>${esc(p.name)}</h3><span class="muted">${esc(lineName(p.line))} · ${esc(p.i18n?.uz?.scent || "")}</span>
           <span class="muted small">${p.gallery.length} ta rasm · ${LANGS.filter(([l]) => p.i18n?.[l]?.line).length}/4 til</span></div>
         <div class="pcard-foot">
           <a class="btn btn-primary btn-sm" href="#/products/${p.id}">Tahrirlash</a>
@@ -631,8 +633,9 @@ const PFIELDS = [
 async function viewProductEdit(view, id) {
   const isNew = id === "new";
   const p = isNew
-    ? { id: "", status: "published", name: "", color: "#6A1FA8", theme: paletteFrom("#6A1FA8"), pack: "", atmo: "", gallery: [], i18n: {} }
+    ? { id: "", status: "published", line: "pods", name: "", color: "#6A1FA8", theme: paletteFrom("#6A1FA8"), pack: "", atmo: "", gallery: [], i18n: {} }
     : await api(`/products/${id}`);
+  p.line = p.line || "pods";
   LANGS.forEach(([l]) => (p.i18n[l] = { scent: "", line: "", hook: "", desc: "", for: "", ...(p.i18n[l] || {}) }));
   let lang = "uz", slugTouched = !isNew, atmoStale = false, busy = false;
   const original = JSON.stringify(p);
@@ -651,6 +654,9 @@ async function viewProductEdit(view, id) {
         <div class="field"><label for="f-slug">Sahifa manzili (URL)</label>
           <div class="row"><span class="muted">/#/</span><input class="input" id="f-slug" maxlength="40" value="${esc(p.id)}" ${isNew ? "" : "disabled"} placeholder="crystal-bloom"></div>
           <span class="hint">${isNew ? "Nomdan avtomatik yasaladi. Saqlangandan keyin o‘zgartirib bo‘lmaydi." : "Manzil o‘zgarmaydi — eski havolalar ishlashda davom etadi."}</span></div>
+        <div class="field"><label for="f-line">Turkum</label>
+          <select class="input" id="f-line" style="width:100%">${LINE_OPTS.map(([v, t]) => `<option value="${v}" ${p.line === v ? "selected" : ""}>${t}</option>`).join("")}</select>
+          <span class="hint">Saytning qaysi bo‘limida chiqadi: kapsulalar bosh karuselda, qolganlari o‘z turkum blokida. Matnlari — «Sayt matnlari» bo‘limida.</span></div>
         <div class="field"><label>Holat</label>
           <div class="seg" data-status-seg><button type="button" data-v="published">Saytda ko‘rinadi</button><button type="button" data-v="draft">Qoralama (yashirin)</button></div></div>
       </section>
@@ -736,6 +742,7 @@ async function viewProductEdit(view, id) {
   const slugify = (s) => s.toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
   nameI.oninput = () => { p.name = nameI.value.trim(); if (isNew && !slugTouched) { slugI.value = slugify(p.name); p.id = slugI.value; } changed(); };
   slugI.oninput = () => { slugTouched = true; slugI.value = slugify(slugI.value); p.id = slugI.value; changed(); };
+  $("#f-line", view).onchange = (e) => { p.line = e.target.value; changed(); };
   const seg = $("[data-status-seg]", view);
   const renderSeg = () => $$("button", seg).forEach((b) => b.classList.toggle("on", b.dataset.v === p.status));
   seg.onclick = (e) => { const b = e.target.closest("button"); if (b) { p.status = b.dataset.v; renderSeg(); changed(); } };
@@ -886,8 +893,19 @@ async function viewProductEdit(view, id) {
 /* =====================================================================
    SAYT MATNLARI
    ===================================================================== */
+const LINE_KEYS = (l) => [[`line.${l}.name`, "Turkum nomi"], [`line.${l}.short`, "Qisqa nomi (bosh ekran)"], [`line.${l}.k`, "Blok: kichik sarlavha"], [`line.${l}.t`, "Blok: sarlavha («|» — yangi qator)"], [`line.${l}.p`, "Blok: matn", 1],
+  [`line.${l}.cat`, "Mahsulot sahifasi: yorliq"], [`line.${l}.meta`, "Qisqa ma’lumot qatori"], [`line.${l}.top`, "Katta nom ustidagi so‘z"], [`line.${l}.three`, "Xususiyatlar sarlavhasi"],
+  ...[1, 2, 3].flatMap((n) => [[`line.${l}.t${n}`, `${n}-xususiyat`], [`line.${l}.t${n}p`, `${n}-xususiyat izohi`]]),
+  ...[1, 2, 3].map((n) => [`line.${l}.s${n}`, `Ishlatish: ${n}-qadam`]), ...[1, 2, 3, 4].map((n) => [`line.${l}.sf${n}`, `Xavfsizlik ${n}`]),
+  [`line.${l}.packs`, "Qadoq hajmlari («|» bilan ajrating)"]];
 const SECTIONS = [
-  ["hero", "Bosh ekran", [["hero.kicker", "Pastki qatordagi yozuv"], ["hero.prev", "«Oldingi» yozuvi"], ["hero.next", "«Keyingi» yozuvi"], ["hero.swipe", "Surish ishorasi"], ["nav.order", "«Buyurtma berish» tugmasi"]]],
+  ["brand", "Birinchi ekran (brend)", [["brand.k", "Kichik sarlavha"], ["brand.t", "Asosiy sarlavha («|» — yangi qator)"], ["brand.p", "Taklif matni", 1], ["brand.count", "Hisob ({n} — turkum, {m} — mahsulot)"], ["brand.scroll", "Pastga ishora"], ["brand.hint", "Bosish ishorasi"],
+    ["line.pods.name", "Kapsula turkumi nomi"], ["line.pods.short", "Kapsula — qisqa nomi"], ["menu.pods", "Menyu: Kapsulalar"], ["menu.family", "Menyu: BÄRC oilasi"]]],
+  ["gel", "Turkum: suyuq gel", LINE_KEYS("gel")],
+  ["powder", "Turkum: kukun", LINE_KEYS("powder")],
+  ["oxi", "Turkum: OXI Power", LINE_KEYS("oxi").concat([["line.oxi.desc", "«Mahsulot haqida» sarlavhasi"], ["line.oxi.order", "Buyurtma tugmasi"]])],
+  ["booster", "Turkum: ifor kuchaytirgich", LINE_KEYS("booster").concat([["line.booster.chips", "Iforlar ro‘yxati («|» bilan)"]])],
+  ["hero", "Kapsulalar karuseli", [["hero.kicker", "Pastki qatordagi yozuv"], ["hero.prev", "«Oldingi» yozuvi"], ["hero.next", "«Keyingi» yozuvi"], ["hero.swipe", "Surish ishorasi"], ["nav.order", "«Buyurtma berish» tugmasi"]]],
   ["why", "Nega kapsula", [["zoom.k", "Kichik sarlavha"], ["zoom.t", "Sarlavha"], ["zoom.p", "Matn", 1]]],
   ["benefits", "Afzalliklar", [1, 2, 3, 4].flatMap((n) => [[`b${n}.old`, `${n}-afzallik: eski usul (ustidan chizilgan)`], [`b${n}.new`, `${n}-afzallik: sarlavha`], [`b${n}.p`, `${n}-afzallik: matn`, 1]])
     .concat([1, 2, 3, 4].map((n) => [`b.nav${n}`, `O‘ngdagi ${n}-ikonka nomi`]))],
@@ -912,7 +930,7 @@ async function viewTexts(view, sec) {
   const DEF = window.I18N || {};
   const work = Object.fromEntries(LANGS.map(([l]) => [l, { ...(server[l]?.data || {}) }]));
   const saved = JSON.stringify(work);
-  let lang = "uz", cur = SECTIONS.find((s) => s[0] === sec) ? sec : "hero";
+  let lang = "uz", cur = SECTIONS.find((s) => s[0] === sec) ? sec : "brand";
   const effective = (l, k) => work[l][k] ?? DEF[l]?.[k] ?? "";
   const changedIn = (l, keys) => keys.filter(([k]) => work[l][k] !== undefined).length;
   const mark = () => { setDirty(JSON.stringify(work) !== saved); renderBar(); };

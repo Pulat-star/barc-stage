@@ -1,6 +1,8 @@
 // Ommaviy: yangi buyurtma (to'lovsiz). Narx yo'q — operator qo'ng'iroq qiladi.
 import { json, bad, readJSON, clientIp, hit, normalizePhone, now, LANGS, getSettings, telegram, escHtml } from "../../lib/server.js";
 
+const LINE_UZ = { pods: "Kapsula", gel: "Gel", powder: "Kukun", oxi: "", booster: "" };
+
 export async function onRequestPost({ request, env, waitUntil }) {
   let body;
   try { body = await readJSON(request, 20_000); } catch { return bad("bad_json"); }
@@ -12,12 +14,13 @@ export async function onRequestPost({ request, env, waitUntil }) {
   if (!(await hit(env.DB, `order-phone:${phone}`, 3_600_000, 5))) return bad("too_many", 429);
 
   const wanted = Array.isArray(body.items) ? body.items.slice(0, 20) : [];
-  const { results: prods } = await env.DB.prepare("SELECT id, name FROM products WHERE status = 'published'").all();
+  const { results: prods } = await env.DB.prepare("SELECT id, name, line FROM products WHERE status = 'published'").all();
   const byId = Object.fromEntries(prods.map((p) => [p.id, p]));
   const items = wanted
-    .map((x) => ({ id: String(x.productSlug || x.id || ""), qty: Math.floor(+x.quantity || +x.qty || 0) }))
+    .map((x) => ({ id: String(x.productSlug || x.id || ""), qty: Math.floor(+x.quantity || +x.qty || 0), variant: String(x.variant || "").trim().slice(0, 40) }))
     .filter((x) => byId[x.id] && x.qty >= 1 && x.qty <= 99)
-    .map((x) => ({ id: x.id, name: byId[x.id].name, qty: x.qty }));
+    // CRM'da bir xil nomli mahsulotlar (kapsula/gel Amethyst) adashmasin: turkum va hajm nomga qo'shiladi
+    .map((x) => ({ id: x.id, name: [LINE_UZ[byId[x.id].line], byId[x.id].name].filter(Boolean).join(" ") + (x.variant ? ` (${x.variant})` : ""), qty: x.qty }));
   if (!items.length) return bad("items");
 
   const name = String(body.name || "").trim().slice(0, 60);

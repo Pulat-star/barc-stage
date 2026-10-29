@@ -226,6 +226,39 @@ html[lang="ar"] .old s { font-family: var(--f-body); letter-spacing: 0; }
 .hero-dots button[aria-selected="true"]::after { background: #fff; width: 40px; }
 .scroll-cue { position: absolute; inset-inline-end: var(--s5); bottom: var(--s6); color: var(--muted); margin: 0; writing-mode: vertical-rl; }
 
+/* ---------------- 1-ekran: brend va oila qatori ---------------- */
+.fam-hero { justify-content: center; padding: 0; overflow: clip; }
+.brand-top { position: absolute; top: 104px; left: var(--gutter); right: var(--gutter); text-align: center; z-index: 1; pointer-events: none; }
+.brand-k { margin: 0 0 var(--s2); }
+.brand-title { margin: 0; font-size: min(5.2vw, 8.6svh, 104px); line-height: .92; text-wrap: balance; }
+.brand-title .ln:first-child { color: color-mix(in srgb, var(--accent) 80%, white); }
+html[lang="ar"] .brand-title { line-height: 1.2; }
+.bhits { position: absolute; inset: 0; z-index: 2; }
+.bhit { position: absolute; display: block; text-decoration: none; border-radius: var(--r-lg); }
+.bhit-label { position: absolute; top: calc(100% + var(--s2)); left: 50%; translate: -50% 0; display: grid; gap: 4px; justify-items: center; text-align: center;
+  width: max-content; max-width: 16vw; transition: translate .4s var(--ease-out); }
+.bhit-label b { font: 700 var(--t-20)/1 "Oswald", sans-serif; text-transform: uppercase; letter-spacing: .02em; transition: color .3s; }
+.bhit-label .mono { color: var(--muted); font-size: 11px; line-height: 1.3; }
+.bhit:hover .bhit-label, .bhit:focus-visible .bhit-label { translate: -50% -4px; }
+.bhit:hover .bhit-label b, .bhit:focus-visible .bhit-label b { color: var(--accent); }
+.brand-foot { position: absolute; left: var(--gutter); right: var(--gutter); bottom: var(--s5); display: grid; gap: var(--s3); justify-items: center; z-index: 1; }
+.brand-offer { margin: 0; text-align: center; max-width: 66ch; font: 500 var(--t-16)/1.45 var(--f-body); color: rgba(255,255,255,.88); }
+.brand-bar { position: static; width: 100%; }
+.brand-scroll { text-decoration: none; color: #fff; justify-self: center; white-space: nowrap; }
+.brand-scroll:hover { color: var(--accent); }
+.brand-hint { text-align: end; }
+
+/* ---------------- Turkum bloklari ---------------- */
+.lvars { display: flex; flex-wrap: wrap; gap: var(--s1); margin-top: var(--s3); }
+.lvar { display: inline-flex; align-items: center; gap: var(--s1); height: 40px; padding: 0 var(--s2); border-radius: var(--r-pill); box-shadow: inset 0 0 0 1px var(--line);
+  text-decoration: none; font: 600 var(--t-14)/1 var(--f-body); transition: box-shadow .3s, background .3s; }
+.lvar i { width: 10px; height: 10px; border-radius: 50%; background: var(--c, var(--accent)); }
+.lvar:hover, .lvar:focus-visible { box-shadow: inset 0 0 0 1px var(--c, var(--accent)); background: color-mix(in srgb, var(--c, var(--accent)) 16%, transparent); }
+.lvar-list { display: contents; }
+.lvar-list span { display: inline-flex; align-items: center; height: 32px; padding: 0 var(--s2); border-radius: var(--r-pill); background: rgba(255,255,255,.08); font: 500 var(--t-14)/1 var(--f-body); }
+.lmeta { color: var(--muted); margin: var(--s3) 0 0; }
+.lcta { display: flex; flex-wrap: wrap; gap: var(--s1); margin-top: var(--s4); }
+
 .solo { flex-direction: column; justify-content: space-between; align-items: center; text-align: center; padding-top: var(--s12); padding-bottom: var(--s8); }
 .solo .h2 { max-width: none; }
 .solo-p { max-width: 40ch; }
@@ -270,7 +303,7 @@ html[lang="ar"] .old s { font-family: var(--f-body); letter-spacing: 0; }
 .faq details p { margin: 0; padding: 0 var(--s8) var(--s3) 0; color: var(--muted); max-width: 64ch; }
 
 .outro { flex-direction: column; justify-content: space-between; align-items: center; text-align: center; padding-top: var(--s16); padding-bottom: var(--s8); }
-.outro-t { font-size: clamp(48px, 8vw, 128px); margin: 0; max-width: 12ch; }
+.outro-t { font-size: clamp(44px, min(6.4vw, 10svh), 112px); margin: 0; max-width: 22ch; }
 .outro-foot { display: grid; justify-items: center; gap: var(--s3); }
 
 #foot { position: relative; z-index: 3; background: var(--bg2); padding: var(--s8) var(--gutter) var(--s5); border-top: 1px solid var(--line); }
@@ -298,7 +331,7 @@ html[lang="ar"] .old s { font-family: var(--f-body); letter-spacing: 0; }
 .p-three li { display: grid; gap: 4px; } .p-three b { font: 700 var(--t-20)/1.2 var(--f-display); text-transform: uppercase; } .p-three span { color: rgba(255,255,255,.85); font-size: var(--t-16); }
 .p-steps, .p-safety { margin: 0; padding-inline-start: var(--s3); display: grid; gap: var(--s2); font-size: var(--t-20); line-height: 1.45; color: rgba(255,255,255,.92); }
 .p-safety li::marker { color: var(--gold); }
-.pills { display: flex; gap: var(--s1); }
+.pills { display: flex; flex-wrap: wrap; gap: var(--s1); }
 .pill { height: 40px; padding: 0 var(--s3); border-radius: var(--r-pill); box-shadow: inset 0 0 0 1px var(--line); font-weight: 600; }
 .pill.is-on { background: #fff; color: var(--bg2); }
 .p-price { color: rgba(255,255,255,.85); font-size: var(--t-16); margin: var(--s2) 0 var(--s3); }
@@ -327,7 +360,7 @@ html[lang="ar"] .old s { font-family: var(--f-body); letter-spacing: 0; }
 /* ---------------- Menyu ---------------- */
 #menu { position: fixed; inset: 0; z-index: 9; background: var(--surface); display: grid; place-items: center; clip-path: inset(0 0 100% 0); }
 #menu nav { display: grid; gap: var(--s1); text-align: center; }
-#menu a { display: block; overflow: hidden; text-decoration: none; font: 700 clamp(48px, 9vw, 120px)/1 var(--f-display); text-transform: uppercase; }
+#menu a { display: block; overflow: hidden; text-decoration: none; font: 700 min(9vw, 8.2svh, 112px)/1 var(--f-display); text-transform: uppercase; }
 html[lang="ar"] #menu a { line-height: 1.3; }
 #menu a span { display: inline-block; transition: color .3s; }
 #menu a:hover span { color: var(--gold); }
@@ -353,6 +386,12 @@ html[lang="ar"] #menu a { line-height: 1.3; }
 .o-item b { display: block; font: 700 var(--t-20)/1.1 "Oswald", sans-serif; text-transform: uppercase; }
 .o-item small { color: var(--muted); font-size: var(--t-14); }
 .o-item .sw { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--c); margin-inline-end: 6px; }
+.o-group { color: var(--muted); margin: var(--s2) 0 0; }
+.o-group:first-child { margin-top: 0; }
+.o-vars { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.o-var { height: 28px; padding: 0 10px; border-radius: var(--r-pill); box-shadow: inset 0 0 0 1px var(--line); font: 600 12px/1 var(--f-body); }
+.o-var.is-on { background: #fff; color: var(--bg2); box-shadow: none; }
+.o-pack { display: block; margin-top: 2px; }
 .qty { display: flex; align-items: center; gap: 4px; }
 .qty button { width: 40px; height: 40px; border-radius: 50%; box-shadow: inset 0 0 0 1px var(--line); font-size: 20px; }
 .qty button:hover { box-shadow: inset 0 0 0 1px #fff; }
@@ -407,6 +446,23 @@ html[lang="ar"] #menu a { line-height: 1.3; }
   .arrow-prev, .arrow-next { top: auto; bottom: 168px; translate: none; width: 48px; height: 48px; }
   .arrow-prev { inset-inline-start: var(--s2); } .arrow-next { inset-inline-end: var(--s2); }
   .hero-name { top: 84px; }
+  .brand-top { top: 84px; }
+  .brand-k { margin-bottom: var(--s1); }
+  .brand-title { font-size: min(10.4vw, 6.2svh, 56px); }
+  .bhit-label { max-width: 24vw; top: calc(100% + var(--s1)); }
+  .bhit-label .mono { display: none; }
+  .bhit-label b { font-size: var(--t-14); }
+  .brand-foot { bottom: var(--s3); gap: var(--s2); }
+  .brand-offer { font-size: var(--t-14); max-width: 40ch; }
+  .brand-bar { grid-template-columns: 1fr; justify-items: center; }
+  .brand-bar p { display: none; }
+  .lvar { height: 36px; padding: 0 12px; }
+  .lcta .btn { height: 48px; padding: 0 var(--s3); font-size: var(--t-14); }
+  .lmeta { display: none; }
+  .lineblk { padding-top: max(50svh, 300px); }
+  .lvars { margin-top: var(--s2); }
+  .lvar, .lvar-list span { height: 32px; font-size: 13px; }
+  .lcta { margin-top: var(--s3); }
   .peek { top: auto; bottom: 96px; translate: none; }
   .peek-in, .peek-next .peek-in { flex-direction: row; gap: var(--s1); }
   .peek-prev { left: var(--s2); } .peek-next { left: auto; right: var(--s2); }

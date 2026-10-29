@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS products (
   id          TEXT PRIMARY KEY,              -- URL slug: amethyst
   sort        INTEGER NOT NULL DEFAULT 0,
   status      TEXT NOT NULL DEFAULT 'published', -- published | draft
+  line        TEXT NOT NULL DEFAULT 'pods',      -- turkum: pods | gel | powder | oxi | booster
   name        TEXT NOT NULL,                 -- "Crystal Bloom"
   color       TEXT NOT NULL,                 -- asosiy rang, #RRGGBB
   theme       TEXT NOT NULL,                 -- JSON {bg,bg2,surface,accent,glow}
