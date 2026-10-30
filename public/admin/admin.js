@@ -48,6 +48,10 @@ const ERR = {
   phone: "Telefon raqami noto‘g‘ri (9 ta raqam)", items: "Kamida bitta mahsulot tanlang",
   tg_missing: "Avval bot tokeni va chat ID ni kiriting va saqlang", short: "Yangi parol kamida 8 belgidan iborat bo‘lsin",
   db_missing: "Ma’lumotlar bazasi ulanmagan", network: "Internet aloqasi yo‘q yoki server javob bermadi",
+  contact_phone: "Telefon faqat raqam, bo‘sh joy, +, ( ) va chiziqchadan iborat bo‘lsin",
+  contact_instagram: "Instagram havolasi https:// bilan boshlanishi kerak", contact_telegram: "Telegram havolasi https:// bilan boshlanishi kerak",
+  origin: "So‘rov boshqa saytdan keldi — sahifani yangilab, qaytadan kiring", server: "Serverda xatolik — birozdan so‘ng qayta urinib ko‘ring",
+  no_session_secret: "SESSION_SECRET sozlanmagan — Cloudflare’da qo‘shing",
 };
 const errText = (e) => ERR[e?.code] || ERR[e?.message] || (e?.code ? `Xatolik: ${e.code}` : "Kutilmagan xatolik");
 
@@ -65,7 +69,7 @@ function ago(ms) {
   if (s < 172800) return `kecha, ${tdate(ms).slice(6)}`;
   return tdate(ms);
 }
-const phoneFmt = (p) => { const d = String(p || "").replace(/\D/g, "").slice(-9); return d.length === 9 ? `+998 ${d.slice(0, 2)} ${d.slice(2, 5)} ${d.slice(5, 7)} ${d.slice(7)}` : p; };
+const phoneFmt = (p) => { const d = String(p || "").replace(/\D/g, "").slice(-9); return d.length === 9 ? `+998 ${d.slice(0, 2)} ${d.slice(2, 5)} ${d.slice(5, 7)} ${d.slice(7)}` : esc(p); };
 const dayStart = () => { const t = Date.now(); return Math.floor((t + TZ) / 86_400_000) * 86_400_000 - TZ; };
 
 /* ---------------- API ---------------- */
@@ -87,7 +91,7 @@ async function api(path, { method = "GET", body, form } = {}) {
 /* ---------------- Toast, modal ---------------- */
 function toast(text, type = "", action) {
   const t = document.createElement("div");
-  t.className = `toast ${type}`; t.innerHTML = `<span>${esc(text)}</span>${action ? `<a href="${action.href}">${esc(action.label)}</a>` : ""}`;
+  t.className = `toast ${type}`; t.innerHTML = `<span>${esc(text)}</span>${action ? `<a href="${esc(action.href)}">${esc(action.label)}</a>` : ""}`;
   $("#toasts").appendChild(t);
   setTimeout(() => t.remove(), action ? 8000 : 3500);
 }
@@ -230,7 +234,8 @@ async function route(soft) {
     view.innerHTML = `<div class="empty"><b>Sahifa topilmadi</b><a href="#/">Boshqaruvga qaytish</a></div>`;
   } catch (e) {
     if (e.code === "auth") return;
-    view.innerHTML = `<div class="card empty"><b>Yuklab bo‘lmadi</b>${esc(errText(e))}<div style="margin-top:16px"><button class="btn" onclick="location.reload()">Qayta urinish</button></div></div>`;
+    view.innerHTML = `<div class="card empty"><b>Yuklab bo‘lmadi</b>${esc(errText(e))}<div style="margin-top:16px"><button class="btn" data-reload>Qayta urinish</button></div></div>`;
+    $("[data-reload]", view).onclick = () => location.reload();
   }
 }
 
@@ -442,7 +447,10 @@ async function openOrder(id, fromRoute) {
       await api(`/orders/${id}`, { method: "DELETE" }); toast("Buyurtma o‘chirildi"); close(); refreshList();
     };
   };
-  try { await load(); } catch (e) { dr.innerHTML = `<div class="empty"><b>Buyurtma topilmadi</b><button class="btn" onclick="this.closest('.drawer').previousSibling.click()">Yopish</button></div>`; }
+  try { await load(); } catch (e) {
+    dr.innerHTML = `<div class="empty"><b>Buyurtma topilmadi</b><button class="btn" data-shut>Yopish</button></div>`;
+    $("[data-shut]", dr).onclick = () => close();
+  }
 }
 function refreshList() { if (location.hash.startsWith("#/orders")) route(true); }
 
@@ -1066,7 +1074,8 @@ async function viewSettings(view) {
 
 /* ---------------- Ishga tushirish ---------------- */
 async function start() {
-  try { await api("/me"); } catch (e) { if (e.code !== "auth") { $("#root").innerHTML = `<div class="login"><div class="login-card"><h1>Server bilan aloqa yo‘q</h1><p class="muted">${esc(errText(e))}</p><button class="btn btn-primary btn-block" onclick="location.reload()">Qayta urinish</button></div></div>`; } return; }
+  try { await api("/me"); } catch (e) { if (e.code !== "auth") { $("#root").innerHTML = `<div class="login"><div class="login-card"><h1>Server bilan aloqa yo‘q</h1><p class="muted">${esc(errText(e))}</p><button class="btn btn-primary btn-block" data-reload>Qayta urinish</button></div></div>`;
+    $("[data-reload]").onclick = () => location.reload(); } return; }
   renderShell(); startPolling(); route();
 }
 start();

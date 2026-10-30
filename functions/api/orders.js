@@ -15,12 +15,13 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
   const wanted = Array.isArray(body.items) ? body.items.slice(0, 20) : [];
   const { results: prods } = await env.DB.prepare("SELECT id, name, line FROM products WHERE status = 'published'").all();
-  const byId = Object.fromEntries(prods.map((p) => [p.id, p]));
+  // Map — oddiy obyektda `__proto__`, `constructor`, `toString` kalitlari prototipdan topilib tekshiruvdan o'tib ketadi
+  const byId = new Map(prods.map((p) => [p.id, p]));
   const items = wanted
-    .map((x) => ({ id: String(x.productSlug || x.id || ""), qty: Math.floor(+x.quantity || +x.qty || 0), variant: String(x.variant || "").trim().slice(0, 40) }))
-    .filter((x) => byId[x.id] && x.qty >= 1 && x.qty <= 99)
+    .map((x) => ({ id: String(x.productSlug || x.id || "").slice(0, 40), qty: Math.floor(+x.quantity || +x.qty || 0), variant: String(x.variant || "").trim().slice(0, 40) }))
+    .filter((x) => byId.has(x.id) && x.qty >= 1 && x.qty <= 99)
     // CRM'da bir xil nomli mahsulotlar (kapsula/gel Amethyst) adashmasin: turkum va hajm nomga qo'shiladi
-    .map((x) => ({ id: x.id, name: [LINE_UZ[byId[x.id].line], byId[x.id].name].filter(Boolean).join(" ") + (x.variant ? ` (${x.variant})` : ""), qty: x.qty }));
+    .map((x) => ({ id: x.id, name: [LINE_UZ[byId.get(x.id).line], byId.get(x.id).name].filter(Boolean).join(" ") + (x.variant ? ` (${x.variant})` : ""), qty: x.qty }));
   if (!items.length) return bad("items");
 
   const name = String(body.name || "").trim().slice(0, 60);

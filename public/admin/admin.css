@@ -297,6 +297,8 @@ select.input { width: auto; padding-right: 32px; }
 @media (max-width: 900px) {
   .app { grid-template-columns: 1fr; }
   .side { display: none; }
+  /* iOS maydonga bosilganda sahifani kattalashtirmasin — 16px dan kichik shrift shunga sabab bo'ladi */
+  .input, select.input, textarea.input { font-size: 16px; }
   .topbar { display: flex; position: sticky; top: 0; z-index: 20; height: 56px; align-items: center; justify-content: space-between; padding: 0 16px; background: #160A24; color: #fff; }
   .topbar b { font: 700 20px/1 "Oswald", "Inter", sans-serif; letter-spacing: .02em; }
   .topbar a { color: #CFC3DE; font-size: 13px; text-decoration: none; }

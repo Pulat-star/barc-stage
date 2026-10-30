@@ -1,0 +1,23 @@
+# Xavfsizlik sarlavhalari (Cloudflare Pages).
+# Diqqat: bu fayl faqat statik fayllarga tegishli — Functions javoblari sarlavhani o'z kodida qo'yadi.
+#
+# script-src'dagi sha256 — index.html ichidagi yagona <script> blokiniki
+# (window.BARC_CONFIG). Shu blok o'zgarsa, yangi hashni shunday olinadi:
+#   python3 -c "import re,hashlib,base64;s=open('public/index.html').read();b=re.findall(r'<script>(.*?)</script>',s,re.S)[0];print('sha256-'+base64.b64encode(hashlib.sha256(b.encode()).digest()).decode())"
+# Hash eskirsa sayt buzilmaydi — faqat konsolda CSP ogohlantirishi chiqadi, chunki
+# orderEndpoint bo'sh bo'lgani uchun app.js baribir /api/orders ga murojaat qiladi.
+
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Cross-Origin-Opener-Policy: same-origin
+  Permissions-Policy: accelerometer=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), usb=(), xr-spatial-tracking=()
+  Strict-Transport-Security: max-age=31536000
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'sha256-Qgoy29yhbyg3A2bOPHnG1sh0jTThXLZdISJKCEP9kvI=' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' blob: data:; media-src 'self'; connect-src 'self'; worker-src 'none'; manifest-src 'self'
+
+# Admin panelda ichki <script> yo'q — shuning uchun 'unsafe-inline' ham yo'q.
+# Ikki qoida ustma-ust tushsa, brauzer ikkisini ham qo'llaydi: natijada eng qattig'i qoladi.
+/admin/*
+  X-Robots-Tag: noindex, nofollow, noarchive
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' blob: data:; connect-src 'self'; worker-src 'none'

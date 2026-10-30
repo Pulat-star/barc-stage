@@ -18,15 +18,22 @@ export async function onRequest(ctx) {
     if (path === "/login" && method === "POST") return login(request, env);
     if (path === "/logout" && method === "POST") return json({ ok: true }, 200, { "set-cookie": clearSession() });
     if (!(await isAuthed(request, env))) return bad("auth", 401);
-    // CSRF: faqat o'z saytimizdan
+    // CSRF: faqat o'z saytimizdan. Brauzer Sec-Fetch-Site'ni doim yuboradi, Origin'ni esa har doim emas —
+    // shuning uchun ikkisi ham tekshiriladi. Ikkisi ham yo'q bo'lsa — bu brauzer emas (curl), o'tadi.
     if (method !== "GET") {
+      const site = request.headers.get("sec-fetch-site");
+      if (site && site !== "same-origin") return bad("origin", 403);
       const origin = request.headers.get("origin");
-      if (origin && new URL(origin).host !== new URL(request.url).host) return bad("origin", 403);
+      if (origin) {
+        let h; try { h = new URL(origin).host; } catch { return bad("origin", 403); }
+        if (h !== new URL(request.url).host) return bad("origin", 403);
+      }
     }
     return await route(path, method, request, env);
   } catch (e) {
     if (e.message === "too_large") return bad("too_large", 413);
-    return bad("server: " + e.message, 500);
+    console.error("admin api:", e.stack || e.message);   // ichki xabar logda qoladi, mijozga chiqmaydi
+    return bad("server", 500);
   }
 }
 
@@ -38,6 +45,7 @@ async function login(request, env) {
     await new Promise((r) => setTimeout(r, 700));
     return bad("wrong", 401);
   }
+  if (!env.SESSION_SECRET) return bad("no_session_secret", 500);   // sir qo'yilmagan bo'lsa cookie ishlamaydi — buni aytamiz
   return json({ ok: true }, 200, { "set-cookie": await makeSession(env) });
 }
 
@@ -89,7 +97,10 @@ async function route(path, method, request, env) {
   if (path === "/orders.csv" && method === "GET") {
     const { where, args } = orderFilter(url);
     const { results } = await db.prepare(`SELECT * FROM orders ${where} ORDER BY created_at DESC LIMIT 5000`).bind(...args).all();
-    const esc = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    // Excel/Sheets `=`, `@`, `+`, `-` bilan boshlangan matnni formula deb o'qiydi — oldiga apostrof qo'yiladi.
+    // Telefon (`+998...`) va oddiy son formula emas — ularga tegilmaydi.
+    const risky = (s) => /^[=@\t\r]/.test(s) || (/^[+-]/.test(s) && !/^[+-][\d\s()\-]*$/.test(s));
+    const esc = (v) => { const s = String(v ?? ""); return `"${(risky(s) ? "'" + s : s).replace(/"/g, '""')}"`; };
     const head = ["Raqam", "Sana", "Holat", "Telefon", "Ism", "Mahsulotlar", "Jami qadoq", "Izoh (mijoz)", "Menejer izohi", "Til", "Manba"];
     const lines = results.map((r) => [
       r.order_no, new Date(r.created_at + 18_000_000).toISOString().slice(0, 16).replace("T", " "), STATUS_UZ[r.status] || r.status,
@@ -200,6 +211,7 @@ async function route(path, method, request, env) {
     if (!MIMES.includes(file.type)) return bad("type");
     if (file.size > MAX_MEDIA) return bad("too_large", 413);
     const buf = await file.arrayBuffer();
+    if (!isImage(file.type, buf)) return bad("type");   // mijoz aytgan turga ishonmaymiz — baytlarni o'zimiz tekshiramiz
     const id = uid(14);
     await db.prepare("INSERT INTO media (id, mime, data, size, w, h, name, created_at) VALUES (?,?,?,?,?,?,?,?)")
       .bind(id, file.type, buf, buf.byteLength, +form.get("w") || null, +form.get("h") || null, String(form.get("name") || "").slice(0, 120), now()).run();
@@ -235,6 +247,9 @@ async function route(path, method, request, env) {
       if (!(k in body)) continue;
       const v = String(body[k] ?? "").trim().slice(0, 300);
       if (k === "tg_token" && v.startsWith("•")) continue;     // yashirilgan qiymat — o'zgarmagan
+      // Kontaktlar saytda havola va matn bo'lib chiqadi: javascript: va teg yozib bo'lmaydi
+      if (v && (k === "contact_instagram" || k === "contact_telegram") && !LINK_OK.test(v)) return bad(k);
+      if (v && k === "contact_phone" && !PHONE_OK.test(v)) return bad(k);
       stmts.push(v ? db.prepare("INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").bind(k, v)
                    : db.prepare("DELETE FROM settings WHERE key = ?").bind(k));
     }
@@ -275,6 +290,14 @@ async function route(path, method, request, env) {
 }
 
 /* ---------------- yordamchilar ---------------- */
+function isImage(mime, buf) {                  // haqiqiy rasm baytlari (sehrli boshlanish)
+  const b = new Uint8Array(buf.slice(0, 12));
+  const at = (i, ...v) => v.every((x, k) => b[i + k] === x);
+  if (mime === "image/png") return at(0, 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a);
+  if (mime === "image/jpeg") return at(0, 0xff, 0xd8, 0xff);
+  if (mime === "image/webp") return at(0, 0x52, 0x49, 0x46, 0x46) && at(8, 0x57, 0x45, 0x42, 0x50);
+  return false;
+}
 function startOfDayTashkent(t) {               // Toshkent UTC+5
   const off = 5 * 3_600_000;
   return Math.floor((t + off) / 86_400_000) * 86_400_000 - off;
@@ -301,14 +324,22 @@ function orderFilter(url) {
 const HEX = /^#[0-9a-f]{6}$/i;
 const URLISH = /^(\/media\/[a-z0-9]+\.\w+|assets\/img\/[\w.-]+(\?v=\d+)?)$/;
 const LINES = ["pods", "gel", "powder", "oxi", "booster"];
+// Sozlamalardagi kontaktlar: faqat http(s) havola va faqat telefon belgilari
+const LINK_OK = /^https?:\/\/[a-z0-9.-]+\.[a-z]{2,}(:\d{2,5})?(\/[\w\-./~%+]*)?(\?[\w\-=&%.+]*)?$/i;
+const PHONE_OK = /^[+\d][\d\s()\-]{4,23}$/;
+const THEME_KEYS = ["bg", "bg2", "surface", "accent", "glow"];
 function cleanProduct(b) {
   const id = String(b.id || "").toLowerCase().trim();
   if (!/^[a-z0-9-]{2,40}$/.test(id)) return { error: "slug" };
   const name = String(b.name || "").trim().slice(0, 40);
   if (!name) return { error: "name" };
+  if (/[<>"'`\\]/.test(name)) return { error: "name" };   // nom saytda teg ichida chiqadi
   if (!HEX.test(b.color || "")) return { error: "color" };
-  const th = b.theme || {};
-  for (const k of ["bg", "bg2", "surface", "accent", "glow"]) if (!HEX.test(th[k] || "")) return { error: "theme" };
+  const th = {};
+  for (const k of THEME_KEYS) {
+    if (!HEX.test((b.theme || {})[k] || "")) return { error: "theme" };
+    th[k] = String(b.theme[k]);                           // faqat tekshirilgan 5 kalit saqlanadi
+  }
   if (!URLISH.test(b.pack || "")) return { error: "pack" };
   const gallery = (Array.isArray(b.gallery) ? b.gallery : []).slice(0, 8)
     .filter((g) => g && URLISH.test(g.src || ""))

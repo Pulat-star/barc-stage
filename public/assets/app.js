@@ -218,12 +218,15 @@ const heroName = (p) => { const pre = p.line === "pods" ? "" : (t(`line.${p.line
     stage.insertAdjacentHTML("beforeend", `<div class="prod" data-i="${i}"><img src="${p.img}" alt="" draggable="false"></div>`);
   });
   dots.classList.toggle("is-many", C > 5);
-  dots.innerHTML = CAR.map((i) => `<button type="button" role="tab" data-go="${i}" aria-label="${PRODUCTS[i].name.replace(/"/g, "")}" data-cursor></button>`).join("");
+  // Bazadan kelgan matn qochiriladi. `esc` quyida e'lon qilinadi, bu blok esa darrov ishlaydi — shu yerda o'zimiz yozamiz.
+  const q = (s) => String(s ?? "").replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+  dots.innerHTML = CAR.map((i) => `<button type="button" role="tab" data-go="${i}" aria-label="${q(PRODUCTS[i].name)}" data-cursor></button>`).join("");
   // Kontaktlar (admin → Sozlamalar)
   const c = SITE.contacts, links = [];
-  if (c.instagram) links.push(`<a href="${c.instagram}" target="_blank" rel="noopener" data-cursor>Instagram</a>`);
-  if (c.telegram) links.push(`<a href="${c.telegram}" target="_blank" rel="noopener" data-cursor>Telegram</a>`);
-  if (c.phone) links.push(`<a href="tel:${c.phone.replace(/[^+\d]/g, "")}" data-cursor>${c.phone}</a>`);
+  const web = (s) => (/^https?:\/\//i.test(String(s || "")) ? q(s) : "");   // faqat http(s): javascript: havola o'tmaydi
+  if (web(c.instagram)) links.push(`<a href="${web(c.instagram)}" target="_blank" rel="noopener" data-cursor>Instagram</a>`);
+  if (web(c.telegram)) links.push(`<a href="${web(c.telegram)}" target="_blank" rel="noopener" data-cursor>Telegram</a>`);
+  if (c.phone) links.push(`<a href="tel:${c.phone.replace(/[^+\d]/g, "")}" data-cursor>${q(c.phone)}</a>`);
   const box = $("#foot-links"); if (box) box.innerHTML = links.join(" · ");
 })();
 const prodEls = $$("#stage .prod");
@@ -363,7 +366,8 @@ if (!reduced && window.Lenis) {
 const scrollTo = (y, immediate) => lenis ? lenis.scrollTo(y, { immediate, duration: 1.4, force: true }) : scrollTo_(y);
 function scrollTo_(y) { window.scrollTo({ top: typeof y === "number" ? y : y.getBoundingClientRect().top + scrollY }); }
 gsap.ticker.add(render);
-addEventListener("scroll", () => document.body.classList.toggle("is-scrolled", scrollY > 40), { passive: true });
+let lastY = 0, lastW = innerWidth; // aylantirishdan oldingi joy: eni o'zgargach kelgan scroll (qisqarish) hisobga olinmaydi
+addEventListener("scroll", () => { document.body.classList.toggle("is-scrolled", scrollY > 40); if (innerWidth === lastW) lastY = scrollY; }, { passive: true });
 
 /* ---------------- I18N ---------------- */
 const t = (key) => (I18N[store.lang] && I18N[store.lang][key]) ?? I18N.uz[key] ?? "";
@@ -507,7 +511,7 @@ function renderRange() {
   if (!rangeHits) return;
   if (!rangeHits.children.length) {
     rangeHits.innerHTML = POD.map((j) =>
-      `<a class="rhit" href="#/${PRODUCTS[j].id}" data-j="${j}" data-cursor><span class="rhit-label"><span class="rhit-name">${PRODUCTS[j].name}</span><span class="rhit-more mono"></span></span></a>`).join("");
+      `<a class="rhit" href="#/${PRODUCTS[j].id}" data-j="${j}" data-cursor><span class="rhit-label"><span class="rhit-name">${esc(PRODUCTS[j].name)}</span><span class="rhit-more mono"></span></span></a>`).join("");
     $$(".rhit", rangeHits).forEach((a) => {
       const j = +a.dataset.j;
       const on = () => { store.hover = j; themeTransition(j); };
@@ -539,14 +543,23 @@ function renderBrand() {
 }
 function placeBrand() {
   if (!bhits) return;
-  const vw = innerWidth / 100, vh = innerHeight / 100, d = dirSign();
-  $$(".bhit", bhits).forEach((a) => {
-    const i = +a.dataset.j, L = FAMP[i], h = prodH * L.s * hK[i], w = prodH * .74 * L.s * wK[i];
-    a.style.left = `${(innerWidth / 2 + d * L.x * vw - w / 2).toFixed(1)}px`;
-    a.style.top = `${(innerHeight / 2 + L.floor * vh - h).toFixed(1)}px`;
+  const vw = innerWidth / 100, vh = innerHeight / 100, d = dirSign(), as = $$(".bhit", bhits);
+  const box = as.map((a) => { const i = +a.dataset.j, L = FAMP[i], h = prodH * L.s * hK[i], w = prodH * .74 * L.s * wK[i];
+    return { L, h, w, x: innerWidth / 2 + d * L.x * vw - w / 2, b: innerHeight / 2 + L.floor * vh }; });
+  as.forEach((a, k) => {
+    const { L, h, w, x, b } = box[k];
+    a.style.left = `${x.toFixed(1)}px`;
+    a.style.top = `${(b - h).toFixed(1)}px`;
     a.style.width = `${w.toFixed(1)}px`; a.style.height = `${h.toFixed(1)}px`;
     a.style.zIndex = String(L.z);
   });
+  // Telefon (cho'ziq ekran): qadoqlar kattaroq bo'lib, yorliq qo'shni qadoq ostida qoladi (sahna yorliqlardan ustda).
+  // Shunda hamma yorliq bitta qatorga — eng pastki qadoq tagiga tushadi; sig'sa — avvalgidek yoy bo'lib qoladi.
+  if (!isMobile) return;
+  const lab = as.map((a) => { const e = $(".bhit-label", a); return [e.offsetWidth / 2, e.offsetHeight]; });
+  const hid = box.some((p, k) => box.some((o, n) => n !== k && o.x < p.x + p.w / 2 + lab[k][0] && o.x + o.w > p.x + p.w / 2 - lab[k][0] && o.b - p.b - 8 > lab[k][1] * .3));
+  const low = Math.max(...box.map((p) => p.b));
+  as.forEach((a, k) => a.style.setProperty("--lab", `${hid ? (low - box[k].b).toFixed(1) : 0}px`));
 }
 if (bhits) {
   bhits.addEventListener("pointerover", (e) => {
@@ -722,6 +735,7 @@ $$(".hero-dots [data-go]").forEach((b) => b.addEventListener("click", () => setA
 (() => {
   const hero = $("#s-hero"); let x0 = null;
   hero.addEventListener("pointerdown", (e) => { if (!e.target.closest("button")) x0 = e.clientX; });
+  addEventListener("pointercancel", () => { x0 = null; }); // telefonda scroll boshlandi — bu swipe emas
   addEventListener("pointerup", (e) => {
     if (x0 === null) return; const dx = (e.clientX - x0) * dirSign(); x0 = null;
     if (Math.abs(dx) > 50) setActive(stepCar(dx < 0 ? 1 : -1));
@@ -793,7 +807,7 @@ function renderOthers() {
   box.innerHTML = PRODUCTS.map((p, j) => ({ p, j })).filter(({ j }) => j !== store.active)
     .sort((a, b) => same(a.p) - same(b.p) || LINE_ORDER.indexOf(a.p.line) - LINE_ORDER.indexOf(b.p.line))
     .map(({ p, j }) => `<a class="ocard" href="#/${p.id}" style="--c:${p.theme.surface}" data-j="${j}" data-cursor>
-       <span class="mono">${esc(t(`line.${p.line}.short`))} · ${esc(t(`prod.${p.id}.scent`))}</span><img src="${p.img}" alt="" loading="lazy"><b>${p.name}</b></a>`).join("");
+       <span class="mono">${esc(t(`line.${p.line}.short`))} · ${esc(t(`prod.${p.id}.scent`))}</span><img src="${p.img}" alt="" loading="lazy"><b>${esc(p.name)}</b></a>`).join("");
   $$(".ocard", box).forEach((a) => {
     a.addEventListener("pointerenter", () => themeTransition(+a.dataset.j));
     a.addEventListener("pointerleave", () => themeTransition(store.active));
@@ -974,7 +988,23 @@ $("#o-next").addEventListener("click", () => {
 });
 $("#o-back").addEventListener("click", () => showStep(1));
 
+// Ba'zi telefonlarda (Android WebView) klaviatura sahifa balandligini qisqartiradi: scroll joyi siljiydi,
+// ScrollTrigger esa balandlik qaytganda o'zini yangilamaydi. Buyurtma yopilib balandlik qaytgach — tiklanadi.
+let kb = null;
+function kbCheck() {
+  if (!kb) return;
+  const off = Math.abs(innerHeight - kb.h) > innerHeight * .2; // klaviatura (manzil satri bundan kichik)
+  if (off) kb.moved = true;
+  if (!orderEl.hidden) return;
+  if (!kb.moved) { kb = null; return; }
+  if (off) return; // klaviatura hali yopilmagan
+  const y = kb.y; kb = null;
+  scrollTo(y, true); window.scrollTo(0, y);
+  ScrollTrigger.refresh();
+  if (store.view === "home") { if (masterST) snap(master, masterST); } else if (productST) snap(productTL, productST);
+}
 function openOrder(source, pre) {
+  kb = { y: scrollY, h: innerHeight, moved: false };
   orderSource = source || (store.view === "product" ? "product" : store.section === "range" ? "range" : "home");
   if (!qty.some(Boolean)) qty[pre != null && pre >= 0 ? pre : store.active] = 1;
   renderOrderItems(); showStep(1);
@@ -993,10 +1023,10 @@ function openOrder(source, pre) {
 function closeOrder(instant) {
   if (orderEl.hidden) return;
   const toX = isMobile ? 0 : (dirSign() === 1 ? 110 : -110);
-  const done = () => { orderEl.hidden = true; scrim.hidden = true; };
+  const done = () => { orderEl.hidden = true; scrim.hidden = true; kbCheck(); };
   gsap.to(stageEl, { opacity: 1, duration: instant ? 0 : THEME_DUR, ease: EASE_IO });
   lenis && !menuOpen && lenis.start();
-  if (instant) return done();
+  if (instant) { kb = null; return done(); }
   gsap.to(orderEl, { xPercent: toX, yPercent: isMobile ? 100 : 0, duration: .45, ease: "power2.in", onComplete: done });
   gsap.to(scrim, { opacity: 0, duration: .4 });
   lastFocus && lastFocus.focus && lastFocus.focus();
@@ -1302,19 +1332,33 @@ document.addEventListener("visibilitychange", () => {
 })();
 
 /* ---------------- Qayta qurish (o'lcham, til) ---------------- */
-function rebuild() {
+function rebuild(keep) {
   isMobile = mq.matches;
+  // Telefon aylantirilganda o'quvchi o'sha joyda qoladi: eski va yangi sahna nuqtalari orasidagi nisbiy o'rin
+  const y = lastY, pts = stagePts.slice(), pEnd = productST && productST.end;
   sizeCanvas();
   renderRange();
   FAMP = famLayout(); placeBrand();
   if (store.view === "home") buildMaster(); else buildProductST();
   ScrollTrigger.refresh();
+  if (keep && (isMobile || matchMedia("(hover: none)").matches)) { // sensorli ekran: katta telefon landshaftda keng maketga o'tsa ham
+    let ny = y;
+    if (store.view === "home") {
+      let k = 0; pts.forEach((p, n) => { if (p.pos <= y) k = n; });
+      const a = pts[k], b = pts[k + 1], na = stagePts[k], nb = stagePts[k + 1];
+      if (a && na) ny = b && nb && b.pos > a.pos ? na.pos + (y - a.pos) / (b.pos - a.pos) * (nb.pos - na.pos) : na.pos + y - a.pos;
+    } else if (pEnd) ny = y / pEnd * Math.max(1, document.documentElement.scrollHeight - innerHeight);
+    ny = Math.round(ny); scrollTo(ny, true); window.scrollTo(0, ny); ScrollTrigger.update();
+    if (store.view === "home") { if (masterST) snap(master, masterST); } else if (productST) snap(productTL, productST);
+  }
+  lastY = scrollY; lastW = innerWidth;
 }
 let rw = innerWidth, rTimer;
 addEventListener("resize", () => {
   sizeCanvas();
-  if (Math.abs(innerWidth - rw) < 2 && !mq.matches === !isMobile) return; // telefon manzil satri
-  rw = innerWidth; clearTimeout(rTimer); rTimer = setTimeout(rebuild, 200);
+  if (Math.abs(innerWidth - rw) < 2 && !mq.matches === !isMobile) return kbCheck(); // telefon manzil satri, klaviatura
+  kb = null;
+  rw = innerWidth; clearTimeout(rTimer); rTimer = setTimeout(() => rebuild(true), 200);
 });
 
 /* ---------------- Loader → hero ---------------- */

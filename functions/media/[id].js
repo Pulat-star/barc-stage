@@ -5,6 +5,12 @@ export async function onRequestGet({ params, env }) {
   const row = await env.DB.prepare("SELECT mime, data FROM media WHERE id = ?").bind(id).first();
   if (!row) return new Response("Not found", { status: 404 });
   return new Response(new Uint8Array(row.data), {
-    headers: { "content-type": row.mime, "cache-control": "public, max-age=31536000, immutable" },
+    headers: {
+      "content-type": row.mime,
+      "cache-control": "public, max-age=31536000, immutable",
+      // Brauzer turni o'zi taxmin qilmasin va bu fayl sahifa bo'lib ishga tushmasin
+      "x-content-type-options": "nosniff",
+      "content-security-policy": "default-src 'none'; img-src data:; sandbox",
+    },
   });
 }
